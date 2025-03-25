@@ -1,7 +1,7 @@
 package com.minhduc5a12.chess.pieces;
 
 import com.minhduc5a12.chess.constants.PieceColor;
-import com.minhduc5a12.chess.model.ChessMatrix;
+import com.minhduc5a12.chess.GameController;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 
@@ -15,7 +15,7 @@ public class Pawn extends ChessPiece {
     }
 
     @Override
-    public List<ChessMove> generateValidMoves(ChessPosition start, ChessMatrix chessMatrix) {
+    public List<ChessMove> generateValidMoves(ChessPosition start, ChessPieceMap pieceMap) {
         List<ChessMove> moves = new ArrayList<>();
         int direction = (getColor() == PieceColor.WHITE) ? 1 : -1;
         int startRow = start.row();
@@ -24,11 +24,11 @@ public class Pawn extends ChessPiece {
         int newRow = startRow + direction;
         if (newRow >= 0 && newRow <= 7) {
             ChessPosition forward = new ChessPosition(startCol, newRow);
-            if (!chessMatrix.hasPiece(forward)) {
+            if (!pieceMap.hasPiece(forward)) {
                 moves.add(new ChessMove(start, forward));
                 if (!hasMoved() && ((getColor() == PieceColor.WHITE && startRow == 1) || (getColor() == PieceColor.BLACK && startRow == 6))) {
                     ChessPosition twoForward = new ChessPosition(startCol, startRow + 2 * direction);
-                    if (!chessMatrix.hasPiece(twoForward)) {
+                    if (!pieceMap.hasPiece(twoForward)) {
                         moves.add(new ChessMove(start, twoForward));
                     }
                 }
@@ -39,7 +39,7 @@ public class Pawn extends ChessPiece {
         for (int col : captureCols) {
             if (col >= 0 && col <= 7 && newRow >= 0 && newRow <= 7) {
                 ChessPosition capturePos = new ChessPosition(col, newRow);
-                if (chessMatrix.hasPiece(capturePos) && chessMatrix.getPiece(capturePos).getColor() != getColor()) {
+                if (pieceMap.hasPiece(capturePos) && pieceMap.getPiece(capturePos).getColor() != getColor()) {
                     moves.add(new ChessMove(start, capturePos));
                 }
             }

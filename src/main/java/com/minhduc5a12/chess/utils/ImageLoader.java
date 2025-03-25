@@ -29,5 +29,6 @@ public class ImageLoader {
         for (String path : paths) {
             getImage(path, 95, 95);
         }
+        getImage("images/chessboard.png", 800, 800);
     }
 }

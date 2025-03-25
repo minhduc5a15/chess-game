@@ -1,7 +1,7 @@
 package com.minhduc5a12.chess.pieces;
 
 import com.minhduc5a12.chess.constants.PieceColor;
-import com.minhduc5a12.chess.model.ChessMatrix;
+import com.minhduc5a12.chess.GameController;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 
@@ -15,7 +15,7 @@ public class Knight extends ChessPiece {
     }
 
     @Override
-    public List<ChessMove> generateValidMoves(ChessPosition start, ChessMatrix chessMatrix) {
+    public List<ChessMove> generateValidMoves(ChessPosition start, ChessPieceMap pieceMap) {
         List<ChessMove> moves = new ArrayList<>();
         int startRow = start.row();
         int startCol = start.col();
@@ -31,8 +31,8 @@ public class Knight extends ChessPiece {
             int newRow = startRow + offset[1];
             if (newCol >= 0 && newCol <= 7 && newRow >= 0 && newRow <= 7) {
                 ChessPosition pos = new ChessPosition(newCol, newRow);
-                if (!chessMatrix.hasPiece(pos) ||
-                    (chessMatrix.hasPiece(pos) && chessMatrix.getPiece(pos).getColor() != getColor())) {
+                if (!pieceMap.hasPiece(pos) ||
+                    (pieceMap.hasPiece(pos) && pieceMap.getPiece(pos).getColor() != getColor())) {
                     moves.add(new ChessMove(start, pos));
                 }
             }

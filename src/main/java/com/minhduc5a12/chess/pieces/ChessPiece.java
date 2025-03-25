@@ -1,5 +1,6 @@
 package com.minhduc5a12.chess.pieces;
 
+import com.minhduc5a12.chess.GameController;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.*;
 import com.minhduc5a12.chess.utils.ImageLoader;
@@ -53,10 +54,10 @@ public abstract class ChessPiece {
         return pieceValue;
     }
 
-    public abstract List<ChessMove> generateValidMoves(ChessPosition start, ChessMatrix chessMatrix);
+    public abstract List<ChessMove> generateValidMoves(ChessPosition start, ChessPieceMap pieceMap);
 
-    public boolean isValidMove(ChessMove move, ChessMatrix chessMatrix) {
-        List<ChessMove> validChessMoves = generateValidMoves(move.start(), chessMatrix);
+    public boolean isValidMove(ChessMove move, ChessPieceMap pieceMap) {
+        List<ChessMove> validChessMoves = generateValidMoves(move.start(), pieceMap);
         return validChessMoves.contains(move);
     }
 

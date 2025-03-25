@@ -9,13 +9,26 @@ public record ChessPosition(int col, int row) {
 
     @Override
     public String toString() {
-        return "Position{" + col + ", " + row + "}";
+        return "ChessPosition{" + col + ", " + row + "}";
     }
 
     public String toChessNotation() {
         char file = (char) ('a' + col);
         int rank = row + 1;
         return "" + file + rank;
+    }
+
+    public static ChessPosition toChessPosition(int row, int col) {
+        return new ChessPosition(row, 7 - col);
+    }
+
+    public static ChessPosition toChessPosition(String chessNotation) {
+        if (chessNotation == null || chessNotation.length() != 2) {
+            throw new IllegalArgumentException("Invalid chess notation: " + chessNotation);
+        }
+        char file = chessNotation.charAt(0);
+        int rank = Character.getNumericValue(chessNotation.charAt(1));
+        return new ChessPosition(file - 'a', rank - 1);
     }
 
     public int[] toMatrixCoords() {
