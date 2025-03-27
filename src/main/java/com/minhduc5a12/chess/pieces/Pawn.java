@@ -1,9 +1,9 @@
 package com.minhduc5a12.chess.pieces;
 
 import com.minhduc5a12.chess.constants.PieceColor;
-import com.minhduc5a12.chess.GameController;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
+import com.minhduc5a12.chess.utils.BoardUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ public class Pawn extends ChessPiece {
 
         int[] captureCols = {startCol - 1, startCol + 1};
         for (int col : captureCols) {
-            if (col >= 0 && col <= 7 && newRow >= 0 && newRow <= 7) {
+            if (BoardUtils.isWithinBoard(col, newRow)) {
                 ChessPosition capturePos = new ChessPosition(col, newRow);
                 if (pieceMap.hasPiece(capturePos) && pieceMap.getPiece(capturePos).getColor() != getColor()) {
                     moves.add(new ChessMove(start, capturePos));

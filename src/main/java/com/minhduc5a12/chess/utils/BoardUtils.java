@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 
 public class BoardUtils {
     private static final Logger logger = LoggerFactory.getLogger(BoardUtils.class);
@@ -20,32 +21,34 @@ public class BoardUtils {
     }
 
     public static boolean isKingInCheck(PieceColor color, ChessPieceMap pieceMap) {
-        ChessPosition kingPosition = null;
-        for (ChessPosition pos : pieceMap.getPieceMap().keySet()) {
-            ChessPiece piece = pieceMap.getPiece(pos);
-            if (piece instanceof King && piece.getColor() == color) {
-                kingPosition = pos;
-                break;
-            }
+        ChessPosition kingPosition = pieceMap.getKingPosition(color);
+        if (kingPosition == null) return false;
+
+        PieceColor opponentColor = (color == PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
+
+        ChessPosition opponentKingPos = pieceMap.getKingPosition(opponentColor);
+
+        if (opponentKingPos != null && Math.abs(kingPosition.col() - opponentKingPos.col()) <= 1 && Math.abs(kingPosition.row() - opponentKingPos.row()) <= 1) {
+            return true;
         }
 
-        if (kingPosition == null) {
-            logger.warn("King not found for color: {}", color);
-            return false;
-        }
-        PieceColor opponentColor = (color == PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
-        for (ChessPosition pos : pieceMap.getPieceMap().keySet()) {
-            ChessPiece piece = pieceMap.getPiece(pos);
-            if (piece.getColor() == opponentColor) {
-                List<ChessMove> opponentMoves = piece.generateValidMoves(pos, pieceMap);
-                for (ChessMove move : opponentMoves) {
-                    if (move.end().equals(kingPosition)) {
-                        return true;
-                    }
+        for (Map.Entry<ChessPosition, ChessPiece> enemyEntry : pieceMap.getPieceMap().entrySet()) {
+            ChessPosition enemyPosition = enemyEntry.getKey();
+            ChessPiece enemyPiece = enemyEntry.getValue();
+
+            if (enemyPiece.getColor() != opponentColor || enemyPiece instanceof King) {
+                continue;
+            }
+
+            List<ChessMove> possibleAttacks = enemyPiece.generateValidMoves(enemyPosition, pieceMap);
+            for (ChessMove move : possibleAttacks) {
+                if (move.end().equals(kingPosition)) {
+                    logger.info("King of {} in check by {} at {}", color, enemyPiece.getClass().getSimpleName(), enemyPosition.toChessNotation());
+                    return true;
                 }
             }
         }
-        return true;
+        return false;
     }
 
     public static boolean isCheckmate(PieceColor color, ChessPieceMap pieceMap) {
@@ -82,10 +85,12 @@ public class BoardUtils {
         return !isKingInCheck(color, tempMap);
     }
 
-    private static ChessPieceMap simulateMove(ChessMove move, ChessPieceMap originalMap) {
+    public static ChessPieceMap simulateMove(ChessMove move, ChessPieceMap pieceMap) {
         ChessPieceMap tempMap = new ChessPieceMap();
-        for (ChessPosition pos : originalMap.getPieceMap().keySet()) {
-            tempMap.setPiece(pos, originalMap.getPiece(pos));
+        for (Map.Entry<ChessPosition, ChessPiece> entry : pieceMap.getPieceMap().entrySet()) {
+            ChessPosition pos = entry.getKey();
+            ChessPiece piece = entry.getValue();
+            tempMap.setPiece(pos, piece);
         }
 
         ChessPiece piece = tempMap.getPiece(move.start());

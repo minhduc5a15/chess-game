@@ -1,13 +1,11 @@
 package com.minhduc5a12.chess;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
@@ -37,6 +35,7 @@ public class ChessTile extends JPanel {
         setPreferredSize(new Dimension(tileSize, tileSize));
         setOpaque(false);
         addMouseListener(new ChessTileMouseListener());
+        addMouseMotionListener(new ChessTileMouseMotionListener());
     }
 
     public ChessTile(ChessPosition position, GameController gameController) {
@@ -50,21 +49,30 @@ public class ChessTile extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
 
         if (isLeftClickSelected) {
-            g.setColor(new Color(56, 72, 79, 160));
-            g.fillRect(0, 0, getWidth(), getHeight());
+            g2d.setColor(new Color(56, 72, 79, 160));
+            g2d.fillRect(0, 0, getWidth(), getHeight());
         }
         if (piece != null) {
             drawPiece(g);
         }
         if (isValidMove) {
-            g.setColor(new Color(255, 255, 255, 100));
-            int circleX = (DEFAULT_TILE_SIZE - CIRCLE_SIZE) / 2;
-            int circleY = (DEFAULT_TILE_SIZE - CIRCLE_SIZE) / 2;
-            g.fillOval(circleX, circleY, CIRCLE_SIZE, CIRCLE_SIZE);
+            if (piece != null) {
+                g2d.setColor(new Color(222, 47, 31, 150));
+                g2d.setStroke(new BasicStroke(9));
+                int circleX = (DEFAULT_TILE_SIZE - 90) / 2;
+                int circleY = (DEFAULT_TILE_SIZE - 90) / 2;
+                g2d.drawOval(circleX, circleY, 90, 90);
+                g2d.setStroke(new BasicStroke(1));
+            } else {
+                g2d.setColor(new Color(255, 255, 255, 100));
+                int circleX = (DEFAULT_TILE_SIZE - CIRCLE_SIZE) / 2;
+                int circleY = (DEFAULT_TILE_SIZE - CIRCLE_SIZE) / 2;
+                g2d.fillOval(circleX, circleY, CIRCLE_SIZE, CIRCLE_SIZE);
+            }
         }
-
     }
 
     private void drawPiece(Graphics g) {
@@ -113,7 +121,6 @@ public class ChessTile extends JPanel {
         return isValidMove;
     }
 
-
     public int getCol() {
         return position.col();
     }
@@ -128,8 +135,8 @@ public class ChessTile extends JPanel {
             if (e.getButton() == MouseEvent.BUTTON1) {
                 ChessTile selectedTile = gameController.getCurrentLeftClickedTile();
                 if (selectedTile == null) {
-                    // Chọn ô có quân cờ
-                    if (piece != null) {
+                    // Chọn ô có quân cờ, chỉ khi quân cờ thuộc về người chơi hiện tại
+                    if (piece != null && piece.getColor() == gameController.getCurrentPlayerColor()) {
                         gameController.setCurrentLeftClickedTile(ChessTile.this);
                         logger.debug("Selected piece at: {}", position.toChessNotation());
                     }
@@ -142,6 +149,23 @@ public class ChessTile extends JPanel {
                     }
                 }
             }
+        }
+    }
+
+    private class ChessTileMouseMotionListener extends MouseMotionAdapter {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            if (piece != null) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                return;
+            }
+
+            if (isValidMove) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                return;
+            }
+
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
     }
 }

@@ -1,15 +1,11 @@
 package com.minhduc5a12.chess;
 
-import com.minhduc5a12.chess.model.ChessMove;
-import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.utils.ImageLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-
-import java.util.List;
 
 public class ChessBoard extends JPanel {
     private static final Logger logger = LoggerFactory.getLogger(ChessBoard.class);
@@ -30,7 +26,6 @@ public class ChessBoard extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         drawDefaultBoard(g);
-        highlightValidMoves();
     }
 
     private void initializeBoard() {
@@ -44,14 +39,5 @@ public class ChessBoard extends JPanel {
 
     private void drawDefaultBoard(Graphics g) {
         g.drawImage(this.boardImage, 0, 0, this.getWidth(), this.getHeight(), null);
-    }
-
-    private void highlightValidMoves() {
-        if (gameController.getCurrentLeftClickedTile() == null) return;
-        ChessTile current = gameController.getCurrentLeftClickedTile();
-        List<ChessMove> validMoves = current.getPiece().generateValidMoves(current.getPosition(), gameController.getChessPieceMap());
-        for (ChessMove move: validMoves) {
-            ChessPosition endMove = move.end();
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.minhduc5a12.chess.pieces;
 
+import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessPosition;
 
 import java.util.HashMap;
@@ -42,5 +43,15 @@ public class ChessPieceMap {
 
     public void clear() {
         pieceMap.clear();
+    }
+
+    public ChessPosition getKingPosition(PieceColor color) {
+        for (Map.Entry<ChessPosition, ChessPiece> entry : pieceMap.entrySet()) {
+            ChessPiece piece = entry.getValue();
+            if (piece instanceof King && piece.getColor() == color) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 }

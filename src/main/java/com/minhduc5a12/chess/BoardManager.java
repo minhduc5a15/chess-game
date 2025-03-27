@@ -4,6 +4,7 @@ import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.pieces.*;
+import com.minhduc5a12.chess.utils.BoardUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,13 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BoardManager {
-    private static final Logger logger = LoggerFactory.getLogger(BoardManager.class);
+    protected static final Logger logger = LoggerFactory.getLogger(BoardManager.class);
     private ChessTile currentLeftClickedTile;
     private List<ChessMove> currentValidMoves;
-    private PieceColor currentPlayerColor = PieceColor.WHITE;
+    protected PieceColor currentPlayerColor = PieceColor.WHITE;
     private final ChessTile[][] tiles = new ChessTile[8][8];
     private final ChessPieceMap chessPieceMap;
-    private ChessMove lastmove;
+    private ChessMove lastMove;
 
     public BoardManager() {
         this.chessPieceMap = new ChessPieceMap();
@@ -29,7 +30,7 @@ public class BoardManager {
                 tiles[row][col] = new ChessTile(new ChessPosition(col, 7 - row), (GameController) this);
             }
         }
-        this.lastmove = null;
+        this.lastMove = null;
     }
 
     public ChessPiece getPiece(ChessPosition position) {
@@ -100,6 +101,13 @@ public class BoardManager {
 
     public void switchTurn() {
         currentPlayerColor = (currentPlayerColor == PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
+        clearCurrentValidMoves();
+        setCurrentLeftClickedTile(null);
+        logger.debug("Switched turn to: {}", currentPlayerColor);
+    }
+
+    public PieceColor getCurrentPlayerColor() {
+        return currentPlayerColor;
     }
 
     public ChessTile getCurrentLeftClickedTile() {
@@ -116,6 +124,17 @@ public class BoardManager {
 
     public void setCurrentValidMoves(List<ChessMove> currentValidMoves) {
         this.currentValidMoves = currentValidMoves;
+    }
+
+    public void clearCurrentValidMoves() {
+        if (currentValidMoves.isEmpty()) return;
+        for (ChessMove move : currentValidMoves) {
+            ChessPosition end = move.end();
+            int[] matrixCoords = end.toMatrixCoords();
+            int row = matrixCoords[0], col = matrixCoords[1];
+            tiles[row][col].setValidMove(false);
+        }
+        currentValidMoves.clear();
     }
 
     public boolean hasPiece(ChessPosition position) {
@@ -138,7 +157,6 @@ public class BoardManager {
         removePiece(move.end());
         removePiece(move.start());
         setPiece(move.end(), piece);
-        switchTurn();
         return true;
     }
 
@@ -161,6 +179,7 @@ public class BoardManager {
             tile.setLeftClickSelected(true);
             this.currentValidMoves = tile.getPiece().generateValidMoves(tile.getPosition(), this.chessPieceMap);
             for (ChessMove move : currentValidMoves) {
+                if (!BoardUtils.isMoveValidUnderCheck(move, this.chessPieceMap)) continue;
                 ChessPosition end = move.end();
                 int[] matrixCoords = end.toMatrixCoords();
                 int row = matrixCoords[0], col = matrixCoords[1];
@@ -169,11 +188,11 @@ public class BoardManager {
         }
     }
 
-    public ChessMove getLastmove() {
-        return lastmove;
+    public ChessMove getLastMove() {
+        return lastMove;
     }
 
-    public void setLastmove(ChessMove lastmove) {
-        this.lastmove = lastmove;
+    public void setLastMove(ChessMove lastMove) {
+        this.lastMove = lastMove;
     }
 }
