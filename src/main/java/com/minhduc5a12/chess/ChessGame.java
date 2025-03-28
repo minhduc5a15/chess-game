@@ -5,7 +5,7 @@ import javax.swing.JFrame;
 import com.minhduc5a12.chess.utils.ImageLoader;
 import com.minhduc5a12.chess.utils.SoundPlayer;
 
-public class Main {
+public class ChessGame {
     public static void main(String[] args) {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {

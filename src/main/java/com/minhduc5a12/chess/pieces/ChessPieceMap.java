@@ -25,10 +25,6 @@ public class ChessPieceMap {
         pieceMap.put(position, piece);
     }
 
-    public void setPiece(int x, int y, ChessPiece piece) {
-        setPiece(new ChessPosition(x, y), piece);
-    }
-
     public void removePiece(ChessPosition position) {
         pieceMap.remove(position);
     }

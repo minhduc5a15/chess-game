@@ -1,5 +1,6 @@
-package com.minhduc5a12.chess;
+package com.minhduc5a12.chess.ui;
 
+import com.minhduc5a12.chess.ChessGame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +104,7 @@ public class GameOverDialog extends JDialog {
         dispose();
         parentFrame.dispose();
         logger.info("Restart game");
-        Main.startNewGame(); // Khởi động lại trò chơi
+        ChessGame.startNewGame(); // Khởi động lại trò chơi
     }
 
     private void onExit(ActionEvent e) {

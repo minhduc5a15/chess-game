@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Knight extends ChessPiece {
     public Knight(PieceColor color) {
-        super(color, color == PieceColor.WHITE ? "white_knight.png" : "black_knight.png");
+        super(color, color.isWhite() ? "white_knight.png" : "black_knight.png");
         setPieceValue(3);
     }
 

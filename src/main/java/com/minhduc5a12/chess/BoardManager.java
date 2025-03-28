@@ -19,12 +19,13 @@ public class BoardManager {
     private final ChessTile[][] tiles = new ChessTile[8][8];
     private final ChessPieceMap chessPieceMap;
     private ChessMove lastMove;
+    protected int halfmoveClock = 0;
+    protected int fullmoveNumber = 1;
 
     public BoardManager() {
         this.chessPieceMap = new ChessPieceMap();
         this.currentLeftClickedTile = null;
         this.currentValidMoves = new ArrayList<>();
-
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 tiles[row][col] = new ChessTile(new ChessPosition(col, 7 - row), (GameController) this);
@@ -43,9 +44,7 @@ public class BoardManager {
 
     public void setPiece(ChessPosition position, ChessPiece piece) {
         chessPieceMap.setPiece(position, piece);
-        int[] matrixCoords = position.toMatrixCoords();
-        int row = matrixCoords[0], col = matrixCoords[1];
-        tiles[row][col].setPiece(piece);
+        getTile(position).setPiece(piece);
     }
 
     public void setPiece(int x, int y, ChessPiece piece) {
@@ -82,7 +81,7 @@ public class BoardManager {
         setPiece(6, 0, new Knight(PieceColor.WHITE));  // Mã trắng g1
         setPiece(7, 0, new Rook(PieceColor.WHITE));    // Xe trắng h1
         for (int col = 0; col < 8; col++) {
-            setPiece(col, 1, new Pawn(PieceColor.WHITE)); // Tốt trắng hàng 2
+            setPiece(col, 1, new Pawn(PieceColor.WHITE, this)); // Tốt trắng hàng 2
         }
 
         // Đặt quân đen
@@ -95,14 +94,15 @@ public class BoardManager {
         setPiece(6, 7, new Knight(PieceColor.BLACK));  // Mã đen g8
         setPiece(7, 7, new Rook(PieceColor.BLACK));    // Xe đen h8
         for (int col = 0; col < 8; col++) {
-            setPiece(col, 6, new Pawn(PieceColor.BLACK)); // Tốt đen hàng 7
+            setPiece(col, 6, new Pawn(PieceColor.BLACK, this)); // Tốt đen hàng 7
         }
     }
 
     public void switchTurn() {
-        currentPlayerColor = (currentPlayerColor == PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
+        currentPlayerColor = currentPlayerColor.getOpponent();
         clearCurrentValidMoves();
         setCurrentLeftClickedTile(null);
+        fullmoveNumber++;
         logger.debug("Switched turn to: {}", currentPlayerColor);
     }
 
@@ -154,9 +154,20 @@ public class BoardManager {
             setCurrentLeftClickedTile(null);
             return false;
         }
+
+        boolean isCapture = getPiece(move.end()) != null;
+        boolean isPawnMove = piece instanceof Pawn;
+        if (isCapture || isPawnMove) {
+            halfmoveClock = 0;
+        } else {
+            halfmoveClock++;
+        }
+
         removePiece(move.end());
         removePiece(move.start());
         setPiece(move.end(), piece);
+        setLastMove(move);
+
         return true;
     }
 
@@ -168,10 +179,10 @@ public class BoardManager {
         if (this.currentLeftClickedTile != null) {
             this.currentLeftClickedTile.setLeftClickSelected(false);
             for (ChessMove move : currentValidMoves) {
-                ChessPosition end = move.end();
-                int[] matrixCoords = end.toMatrixCoords();
-                int row = matrixCoords[0], col = matrixCoords[1];
-                tiles[row][col].setValidMove(false);
+                ChessTile endTile = getTile(move.end());
+                if (endTile != null) {
+                    endTile.setValidMove(false);
+                }
             }
         }
         this.currentLeftClickedTile = tile;
@@ -180,10 +191,10 @@ public class BoardManager {
             this.currentValidMoves = tile.getPiece().generateValidMoves(tile.getPosition(), this.chessPieceMap);
             for (ChessMove move : currentValidMoves) {
                 if (!BoardUtils.isMoveValidUnderCheck(move, this.chessPieceMap)) continue;
-                ChessPosition end = move.end();
-                int[] matrixCoords = end.toMatrixCoords();
-                int row = matrixCoords[0], col = matrixCoords[1];
-                tiles[row][col].setValidMove(true);
+                ChessTile endTile = getTile(move.end());
+                if (endTile != null) {
+                    endTile.setValidMove(true);
+                }
             }
         }
     }
@@ -193,6 +204,34 @@ public class BoardManager {
     }
 
     public void setLastMove(ChessMove lastMove) {
+        if (this.lastMove != null) {
+            ChessTile startTile = getTile(this.lastMove.start());
+            ChessTile endTile = getTile(this.lastMove.end());
+            if (startTile != null) startTile.setLastMove(false);
+            if (endTile != null) endTile.setLastMove(false);
+        }
         this.lastMove = lastMove;
+        if (lastMove != null) {
+            ChessTile startTile = getTile(lastMove.start());
+            ChessTile endTile = getTile(lastMove.end());
+            if (startTile != null) startTile.setLastMove(true);
+            if (endTile != null) endTile.setLastMove(true);
+        }
+        logger.info("Last move: {}", lastMove);
+    }
+
+    public int getHalfmoveClock() {
+        return halfmoveClock;
+    }
+
+    public int getFullmoveNumber() {
+        return fullmoveNumber;
+    }
+
+    public ChessTile getTile(ChessPosition position) {
+        int[] matrixCoords = position.toMatrixCoords();
+        int row = matrixCoords[0];
+        int col = matrixCoords[1];
+        return tiles[row][col];
     }
 }

@@ -3,13 +3,14 @@ package com.minhduc5a12.chess.pieces;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
+import com.minhduc5a12.chess.utils.BoardUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Rook extends ChessPiece {
     public Rook(PieceColor color) {
-        super(color, color == PieceColor.WHITE ? "white_rook.png" : "black_rook.png");
+        super(color, color.isWhite() ? "white_rook.png" : "black_rook.png");
         setPieceValue(5);
     }
 
@@ -27,7 +28,7 @@ public class Rook extends ChessPiece {
             int newCol = startCol + dCol;
             int newRow = startRow + dRow;
 
-            while (newCol >= 0 && newCol <= 7 && newRow >= 0 && newRow <= 7) {
+            while (BoardUtils.isWithinBoard(newCol, newRow)) {
                 ChessPosition endPos = new ChessPosition(newCol, newRow);
                 if (!pieceMap.hasPiece(endPos)) {
                     moves.add(new ChessMove(start, endPos));

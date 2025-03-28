@@ -10,7 +10,7 @@ import java.util.List;
 
 public class King extends ChessPiece {
     public King(PieceColor color) {
-        super(color, color == PieceColor.WHITE ? "white_king.png" : "black_king.png");
+        super(color, color.isWhite() ? "white_king.png" : "black_king.png");
         setPieceValue(0);
     }
 
@@ -25,7 +25,7 @@ public class King extends ChessPiece {
         for (int[] offset : offsets) {
             int newCol = startCol + offset[0];
             int newRow = startRow + offset[1];
-            if (newCol >= 0 && newCol <= 7 && newRow >= 0 && newRow <= 7) {
+            if (BoardUtils.isWithinBoard(newCol, newRow)) {
                 ChessPosition pos = new ChessPosition(newCol, newRow);
                 if (!pieceMap.hasPiece(pos) || (pieceMap.hasPiece(pos) && pieceMap.getPiece(pos).getColor() != color)) {
                     moves.add(new ChessMove(start, pos));

@@ -24,13 +24,14 @@ public class ChessTile extends JPanel {
     private final int pieceSize;
     private boolean isLeftClickSelected;
     private boolean isValidMove;
+    private boolean isLastMove;
     private final GameController gameController;
 
     public ChessTile(ChessPosition position, int tileSize, GameController gameController) {
         this.position = position;
         this.tileSize = tileSize;
         this.pieceSize = 95;
-        this.isLeftClickSelected = this.isValidMove = false;
+        this.isLeftClickSelected = this.isValidMove = this.isLastMove = false;
         this.gameController = gameController;
         setPreferredSize(new Dimension(tileSize, tileSize));
         setOpaque(false);
@@ -42,10 +43,6 @@ public class ChessTile extends JPanel {
         this(position, DEFAULT_TILE_SIZE, gameController);
     }
 
-    public ChessTile(int col, int row, GameController gameController) {
-        this(new ChessPosition(col, row), gameController);
-    }
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -55,13 +52,22 @@ public class ChessTile extends JPanel {
             g2d.setColor(new Color(56, 72, 79, 160));
             g2d.fillRect(0, 0, getWidth(), getHeight());
         }
+
+        if (isLastMove) {
+            g2d.setColor(new Color(0, 0, 0, 50));
+            g2d.fillRect(0, 0, DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+            g2d.setColor(gameController.getPiece(gameController.getLastMove().end()).getColor().isWhite() ? new Color(0, 211, 255) : new Color(255, 24, 62));
+            g2d.setStroke(new BasicStroke(4));
+            g2d.drawRect(0, 0, DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+        }
+
         if (piece != null) {
             drawPiece(g);
         }
         if (isValidMove) {
             if (piece != null) {
                 g2d.setColor(new Color(222, 47, 31, 150));
-                g2d.setStroke(new BasicStroke(9));
+                g2d.setStroke(new BasicStroke(4));
                 int circleX = (DEFAULT_TILE_SIZE - 90) / 2;
                 int circleY = (DEFAULT_TILE_SIZE - 90) / 2;
                 g2d.drawOval(circleX, circleY, 90, 90);
@@ -129,6 +135,15 @@ public class ChessTile extends JPanel {
         return position.row();
     }
 
+    public boolean isLastMove() {
+        return isLastMove;
+    }
+
+    public void setLastMove(boolean lastMove) {
+        isLastMove = lastMove;
+        repaint();
+    }
+
     private class ChessTileMouseListener extends MouseAdapter {
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -156,11 +171,6 @@ public class ChessTile extends JPanel {
         @Override
         public void mouseMoved(MouseEvent e) {
             if (piece != null) {
-                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                return;
-            }
-
-            if (isValidMove) {
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 return;
             }

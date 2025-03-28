@@ -1,16 +1,16 @@
 package com.minhduc5a12.chess.pieces;
 
 import com.minhduc5a12.chess.constants.PieceColor;
-import com.minhduc5a12.chess.GameController;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
+import com.minhduc5a12.chess.utils.BoardUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Queen extends ChessPiece {
     public Queen(PieceColor color) {
-        super(color, color == PieceColor.WHITE ? "white_queen.png" : "black_queen.png");
+        super(color, color.isWhite() ? "white_queen.png" : "black_queen.png");
         setPieceValue(9);
     }
 
@@ -20,10 +20,7 @@ public class Queen extends ChessPiece {
         int startRow = start.row();
         int startCol = start.col();
 
-        int[][] directions = {
-            {0, 1}, {0, -1}, {1, 0}, {-1, 0},
-            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-        };
+        int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
         for (int[] dir : directions) {
             int dCol = dir[0];
@@ -31,7 +28,7 @@ public class Queen extends ChessPiece {
             int newCol = startCol + dCol;
             int newRow = startRow + dRow;
 
-            while (newCol >= 0 && newCol <= 7 && newRow >= 0 && newRow <= 7) {
+            while (BoardUtils.isWithinBoard(newCol, newRow)) {
                 ChessPosition pos = new ChessPosition(newCol, newRow);
                 if (!pieceMap.hasPiece(pos)) {
                     moves.add(new ChessMove(start, pos));

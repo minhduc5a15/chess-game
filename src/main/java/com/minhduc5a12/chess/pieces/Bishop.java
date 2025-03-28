@@ -11,7 +11,7 @@ import java.util.List;
 
 public class Bishop extends ChessPiece {
     public Bishop(PieceColor color) {
-        super(color, color == PieceColor.WHITE ? "white_bishop.png" : "black_bishop.png");
+        super(color, color.isWhite() ? "white_bishop.png" : "black_bishop.png");
         setPieceValue(3);
     }
 
