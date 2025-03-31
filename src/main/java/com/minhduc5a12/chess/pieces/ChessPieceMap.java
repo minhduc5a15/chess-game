@@ -50,30 +50,4 @@ public class ChessPieceMap {
         }
         return null;
     }
-
-    public String boardState() {
-        StringBuilder state = new StringBuilder();
-        for (int row = 7; row >= 0; row--) {
-            for (int col = 0; col < 8; col++) {
-                ChessPosition pos = new ChessPosition(col, row);
-                ChessPiece piece = pieceMap.get(pos);
-                if (piece == null) {
-                    state.append(".");
-                } else {
-                    char symbol = switch (piece.getClass().getSimpleName()) {
-                        case "Pawn" -> 'P';
-                        case "Rook" -> 'R';
-                        case "Knight" -> 'N';
-                        case "Bishop" -> 'B';
-                        case "Queen" -> 'Q';
-                        case "King" -> 'K';
-                        default -> '?';
-                    };
-                    state.append(piece.getColor() == PieceColor.WHITE ? Character.toLowerCase(symbol) : symbol);
-                }
-            }
-            if (row > 0) state.append("/");
-        }
-        return state.toString();
-    }
 }

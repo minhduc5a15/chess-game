@@ -15,7 +15,6 @@ public class PromotionDialog extends JDialog {
     private String selectedPiece = "Queen";
     private static final Map<String, ImageIcon> iconCache = new HashMap<>();
 
-
     public PromotionDialog(Frame parent, PieceColor color) {
         super(parent, "Pawn Promotion", true);
         setLayout(new BorderLayout(10, 10));
