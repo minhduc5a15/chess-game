@@ -94,6 +94,13 @@ public class ChessNotationUtils {
         return fen.toString();
     }
 
+    public String getPartialFEN(BoardManager boardManager) {
+        String fullFen = getFEN(boardManager);
+        String[] parts = fullFen.split(" ");
+
+        return String.join(" ", parts[0], parts[1], parts[2], parts[3]);
+    }
+
     private char getPieceNotation(ChessPiece piece) {
         String className = piece.getClass().getSimpleName();
         char notation = switch (className) {

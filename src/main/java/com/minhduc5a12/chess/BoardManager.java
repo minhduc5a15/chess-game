@@ -5,11 +5,14 @@ import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.pieces.*;
 import com.minhduc5a12.chess.utils.BoardUtils;
+import com.minhduc5a12.chess.utils.ChessNotationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BoardManager {
     protected static final Logger logger = LoggerFactory.getLogger(BoardManager.class);
@@ -22,8 +25,13 @@ public class BoardManager {
     protected int halfmoveClock = 0;
     protected int fullmoveNumber = 1;
 
+    private final Map<String, Integer> boardStateHistory;
+    private final ChessNotationUtils notationUtils;
+
     public BoardManager() {
         this.chessPieceMap = new ChessPieceMap();
+        this.boardStateHistory = new HashMap<>();
+        this.notationUtils = new ChessNotationUtils();
         this.currentLeftClickedTile = null;
         this.currentValidMoves = new ArrayList<>();
         for (int row = 0; row < 8; row++) {
@@ -114,61 +122,19 @@ public class BoardManager {
         return currentLeftClickedTile;
     }
 
-    public List<ChessMove> getCurrentValidMoves() {
-        return currentValidMoves;
-    }
-
     public ChessPieceMap getChessPieceMap() {
         return chessPieceMap;
-    }
-
-    public void setCurrentValidMoves(List<ChessMove> currentValidMoves) {
-        this.currentValidMoves = currentValidMoves;
     }
 
     public void clearCurrentValidMoves() {
         if (currentValidMoves.isEmpty()) return;
         for (ChessMove move : currentValidMoves) {
-            ChessPosition end = move.end();
-            int[] matrixCoords = end.toMatrixCoords();
-            int row = matrixCoords[0], col = matrixCoords[1];
-            tiles[row][col].setValidMove(false);
+            ChessTile endTile = getTile(move.end());
+            if (endTile != null) {
+                endTile.setValidMove(false);
+            }
         }
         currentValidMoves.clear();
-    }
-
-    public boolean hasPiece(ChessPosition position) {
-        return chessPieceMap.hasPiece(position);
-    }
-
-    public boolean isValidMove(ChessMove move) {
-        return currentValidMoves.contains(move);
-    }
-
-    public boolean movePiece(ChessMove move) {
-        ChessPiece piece = getPiece(move.start());
-        if (piece == null) {
-            return false;
-        }
-        if (!isValidMove(move)) {
-            setCurrentLeftClickedTile(null);
-            return false;
-        }
-
-        boolean isCapture = getPiece(move.end()) != null;
-        boolean isPawnMove = piece instanceof Pawn;
-        if (isCapture || isPawnMove) {
-            halfmoveClock = 0;
-        } else {
-            halfmoveClock++;
-        }
-
-        removePiece(move.end());
-        removePiece(move.start());
-        setPiece(move.end(), piece);
-        setLastMove(move);
-
-        return true;
     }
 
     public ChessTile[][] getTiles() {
@@ -229,9 +195,33 @@ public class BoardManager {
     }
 
     public ChessTile getTile(ChessPosition position) {
-        int[] matrixCoords = position.toMatrixCoords();
-        int row = matrixCoords[0];
-        int col = matrixCoords[1];
-        return tiles[row][col];
+        return tiles[position.matrixRow()][position.matrixCol()];
+    }
+
+    public Map<String, Integer> getBoardStateHistory() {
+        return boardStateHistory;
+    }
+
+    public void updatePieceMovement(ChessMove move) {
+        ChessPiece piece = getPiece(move.end());
+        if (piece != null) {
+            piece.setHasMoved(true);
+        }
+    }
+
+    public void updateBoardStateHistory() {
+        String partialFEN = notationUtils.getPartialFEN(this);
+        boardStateHistory.put(partialFEN, boardStateHistory.getOrDefault(partialFEN, 0) + 1);
+        logger.debug("Updated board state (partial FEN): {}, occurrences: {}", partialFEN, boardStateHistory.get(partialFEN));
+    }
+
+    public void repaintTiles(ChessTile... tiles) {
+        for (ChessTile tile : tiles) {
+            if (tile != null) tile.repaint();
+        }
+    }
+
+    public ChessNotationUtils getNotationUtils() {
+        return notationUtils;
     }
 }

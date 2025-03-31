@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class GameController extends BoardManager implements MoveExecutor {
+    private static final int FIFTY_MOVE_RULE_LIMIT = 50;
     private boolean gameEnded;
     private JFrame frame;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -53,7 +54,6 @@ public class GameController extends BoardManager implements MoveExecutor {
         ChessTile startTile = getTile(move.start());
         ChessTile endTile = getTile(move.end());
 
-
         if (piece instanceof Pawn && (move.end().row() == 7 || move.end().row() == 0)) {
             piece = promotePawn(move.end(), piece.getColor());
             SoundPlayer.playMoveSound();
@@ -63,10 +63,22 @@ public class GameController extends BoardManager implements MoveExecutor {
         removePiece(move.start());
 
         setLastMove(move);
+        updatePieceMovement(move);
 
-        startTile.repaint();
-        endTile.repaint();
+        updateBoardStateHistory();
+        if (BoardUtils.isThreefoldRepetition(this)) { // Kiểm tra ngay tại đây, đồng bộ
+            gameEnded = true;
+            SwingUtilities.invokeLater(() -> {
+                GameOverDialog dialog = new GameOverDialog(frame, "Hòa do lặp lại 3 lần!");
+                dialog.setVisible(true);
+            });
+            logger.info("Game ended due to threefold repetition (FIDE)");
+            repaintTiles(startTile, endTile);
 
+            return true;
+        }
+
+        repaintTiles(startTile, endTile);
         if (isCapture || isPawnMove) {
             halfmoveClock = 0;
         } else {
@@ -87,12 +99,7 @@ public class GameController extends BoardManager implements MoveExecutor {
 
         logger.debug("Executed move: {} to {}", move.start().toChessNotation(), move.end().toChessNotation());
 
-        executor.submit(() -> {
-            if (BoardUtils.isCheckmate(currentPlayerColor, getChessPieceMap())) {
-                gameEnded = true;
-                SwingUtilities.invokeLater(this::showGameOverDialog);
-            }
-        });
+        executor.submit(this::checkGameEndConditions); // Các điều kiện khác vẫn chạy bất đồng bộ
 
         return true;
     }
@@ -112,7 +119,6 @@ public class GameController extends BoardManager implements MoveExecutor {
         }
 
         boolean canCastle = isKingside ? kingPiece.canCastleKingside(kingPos, getChessPieceMap()) : kingPiece.canCastleQueenside(kingPos, getChessPieceMap());
-
         if (!canCastle) {
             logger.debug("Cannot castle {} for {}", isKingside ? "kingside" : "queenside", color);
             return false;
@@ -138,11 +144,16 @@ public class GameController extends BoardManager implements MoveExecutor {
         setPiece(new ChessPosition(rookTargetCol, kingRow), rook);
         king.setHasMoved(true);
         rook.setHasMoved(true);
-        kingStartTile.repaint();
-        kingEndTile.repaint();
-        rookStartTile.repaint();
-        rookEndTile.repaint();
+
+        setLastMove(new ChessMove(kingPos, new ChessPosition(kingTargetCol, kingRow)));
+        updateBoardStateHistory();
+
+        repaintTiles(kingStartTile, kingEndTile, rookStartTile, rookEndTile);
         logger.debug("Castling performed: {} for {}", isKingside ? "Kingside" : "Queenside", color);
+
+        switchTurn();
+        halfmoveClock++;
+        executor.submit(this::checkGameEndConditions);
 
         return true;
     }
@@ -174,29 +185,30 @@ public class GameController extends BoardManager implements MoveExecutor {
             return false;
         }
 
-        // Kiểm tra hợp lệ khi bị chiếu
         ChessPieceMap tempMap = BoardUtils.simulateMove(move, getChessPieceMap());
-        tempMap.removePiece(lastMove.end()); // Xóa quân tốt bị bắt
+        tempMap.removePiece(lastMove.end());
         if (BoardUtils.isKingInCheck(piece.getColor(), tempMap)) {
             logger.debug("En passant invalid under check");
             return false;
         }
 
-        // Thực hiện nước đi
         ChessTile startTile = getTile(move.start());
         ChessTile endTile = getTile(move.end());
         ChessTile capturedTile = getTile(lastMove.end());
 
-        removePiece(lastMove.end()); // Xóa quân tốt bị bắt
+        removePiece(lastMove.end());
         removePiece(move.start());
         setPiece(move.end(), piece);
         setLastMove(move);
+        updatePieceMovement(move);
+        updateBoardStateHistory();
 
-        startTile.repaint();
-        endTile.repaint();
-        capturedTile.repaint();
-
+        repaintTiles(startTile, endTile, capturedTile);
         logger.info("En passant performed: {} to {}, captured at {}", move.start().toChessNotation(), move.end().toChessNotation(), lastMove.end().toChessNotation());
+
+        halfmoveClock = 0;
+        switchTurn();
+        executor.submit(this::checkGameEndConditions);
 
         return true;
     }
@@ -230,53 +242,37 @@ public class GameController extends BoardManager implements MoveExecutor {
         return promotedPiece;
     }
 
-    @Override
     public boolean movePiece(ChessMove move) {
         ChessPiece piece = getPiece(move.start());
-        if (piece == null) {
-            return false;
-        }
-
-        // Xử lý nhập thành
-        if (piece instanceof King && Math.abs(move.end().col() - move.start().col()) == 2) {
-            boolean isKingside = move.end().col() > move.start().col();
-            if (performCastling(isKingside, piece.getColor())) {
-                SoundPlayer.playCastleSound();
-                switchTurn();
-                executor.submit(() -> {
-                    if (BoardUtils.isCheckmate(currentPlayerColor, getChessPieceMap())) {
-                        gameEnded = true;
-                        SwingUtilities.invokeLater(this::showGameOverDialog);
-                    }
-                });
-                setLastMove(move);
-                return true;
-            } else {
-                SoundPlayer.playMoveIllegal();
+        switch (piece) {
+            case null -> {
                 return false;
+            }
+
+            case King king when Math.abs(move.end().col() - move.start().col()) == 2 -> {
+                boolean isKingside = move.end().col() > move.start().col();
+                if (performCastling(isKingside, piece.getColor())) {
+                    SoundPlayer.playCastleSound();
+                    return true;
+                } else {
+                    SoundPlayer.playMoveIllegal();
+                    return false;
+                }
+            }
+
+            case Pawn pawn when getPiece(move.end()) == null && move.start().col() != move.end().col() && Math.abs(move.start().row() - move.end().row()) == 1 -> {
+                if (performEnPassant(move)) {
+                    SoundPlayer.playCaptureSound();
+                    return true;
+                } else {
+                    SoundPlayer.playMoveIllegal();
+                    return false;
+                }
+            }
+            default -> {
             }
         }
 
-        // Xử lý bắt tốt qua đường
-        if (piece instanceof Pawn && getPiece(move.end()) == null && move.start().col() != move.end().col() && Math.abs(move.start().row() - move.end().row()) == 1) {
-            if (performEnPassant(move)) {
-                SoundPlayer.playCaptureSound();
-                halfmoveClock = 0; // Reset đồng hồ vì có bắt quân
-                switchTurn();
-                executor.submit(() -> {
-                    if (BoardUtils.isCheckmate(currentPlayerColor, getChessPieceMap())) {
-                        gameEnded = true;
-                        SwingUtilities.invokeLater(this::showGameOverDialog);
-                    }
-                });
-                return true;
-            } else {
-                SoundPlayer.playMoveIllegal();
-                return false;
-            }
-        }
-
-        // Xử lý nước đi thông thường
         return executeMove(move);
     }
 
@@ -293,5 +289,33 @@ public class GameController extends BoardManager implements MoveExecutor {
     public void shutdown() {
         executor.shutdown();
         SoundPlayer.shutdown();
+    }
+
+    private void checkGameEndConditions() {
+        if (BoardUtils.isCheckmate(currentPlayerColor, getChessPieceMap())) {
+            gameEnded = true;
+            SwingUtilities.invokeLater(this::showGameOverDialog);
+        } else if (halfmoveClock >= FIFTY_MOVE_RULE_LIMIT) {
+            gameEnded = true;
+            SwingUtilities.invokeLater(() -> {
+                GameOverDialog dialog = new GameOverDialog(frame, "Hòa do luật 50 nước!");
+                dialog.setVisible(true);
+            });
+            logger.info("Game ended due to 50-move rule");
+        } else if (BoardUtils.isDeadPosition(getChessPieceMap())) {
+            gameEnded = true;
+            SwingUtilities.invokeLater(() -> {
+                GameOverDialog dialog = new GameOverDialog(frame, "Hòa do không đủ quân để chiếu hết!");
+                dialog.setVisible(true);
+            });
+            logger.info("Game ended due to dead position (insufficient material)");
+        } else if (BoardUtils.isStalemate(currentPlayerColor, getChessPieceMap())) {
+            gameEnded = true;
+            SwingUtilities.invokeLater(() -> {
+                GameOverDialog dialog = new GameOverDialog(frame, "Hòa do bất biến (Stalemate)!");
+                dialog.setVisible(true);
+            });
+            logger.info("Game ended due to stalemate");
+        }
     }
 }

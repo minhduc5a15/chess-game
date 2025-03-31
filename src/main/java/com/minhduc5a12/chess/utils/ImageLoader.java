@@ -1,6 +1,7 @@
 package com.minhduc5a12.chess.utils;
 
-import java.awt.Image;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,5 +31,16 @@ public class ImageLoader {
             getImage(path, 95, 95);
         }
         getImage("images/chessboard.png", 800, 800);
+    }
+
+    public static Image rotateImage(BufferedImage original, double degrees) {
+        int w = original.getWidth();
+        int h = original.getHeight();
+        BufferedImage rotated = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = rotated.createGraphics();
+        g2d.rotate(Math.toRadians(degrees), w / 2.0, h / 2.0);
+        g2d.drawImage(original, 0, 0, null);
+        g2d.dispose();
+        return rotated.getScaledInstance(w, h, Image.SCALE_SMOOTH);
     }
 }

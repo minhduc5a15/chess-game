@@ -2,11 +2,13 @@ package com.minhduc5a12.chess.pieces;
 
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.*;
+import com.minhduc5a12.chess.utils.BoardUtils;
 import com.minhduc5a12.chess.utils.ImageLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.Image;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ChessPiece {
@@ -56,8 +58,18 @@ public abstract class ChessPiece {
     public abstract List<ChessMove> generateValidMoves(ChessPosition start, ChessPieceMap pieceMap);
 
     public boolean isValidMove(ChessMove move, ChessPieceMap pieceMap) {
-        List<ChessMove> validChessMoves = generateValidMoves(move.start(), pieceMap);
-        return validChessMoves.contains(move);
+        List<ChessMove> moves = generateValidMoves(move.start(), pieceMap);
+
+        for (ChessMove chessMove: moves) {
+            ChessPieceMap tempMap = BoardUtils.simulateMove(chessMove, pieceMap);
+            if (!BoardUtils.isKingInCheck(this.getColor(), tempMap)) {
+                if (chessMove.equals(move)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public String getImagePath() {
