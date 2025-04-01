@@ -1,45 +1,22 @@
 package com.minhduc5a12.chess.ui;
 
-import com.minhduc5a12.chess.ChessLauncher; // Thay đổi import
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.minhduc5a12.chess.constants.PieceColor;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.geom.RoundRectangle2D;
 
-public class GameOverDialog extends JDialog {
-    private static final Logger logger = LoggerFactory.getLogger(GameOverDialog.class);
-    private final JFrame parentFrame;
+public class ColorSelectionDialog extends JDialog {
+    private PieceColor selectedColor = PieceColor.WHITE;
 
-    public GameOverDialog(Frame parent, String message) {
-        super(parent, "Kết thúc ván cờ", true);
-        this.parentFrame = (JFrame) parent;
+    public ColorSelectionDialog(Frame parent) {
+        super(parent, "Chọn màu", true);
         setLayout(new BorderLayout(10, 10));
         getContentPane().setBackground(new Color(30, 30, 30));
         setResizable(false);
         setUndecorated(true);
-        JPanel roundedPanel = createRoundedPanel();
-        roundedPanel.setLayout(new BorderLayout(10, 10));
-        roundedPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel messageLabel = new JLabel(message, SwingConstants.CENTER);
-        messageLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        messageLabel.setForeground(Color.WHITE);
-        roundedPanel.add(messageLabel, BorderLayout.CENTER);
-
-        JPanel buttonPanel = createButtonPanel();
-        roundedPanel.add(buttonPanel, BorderLayout.SOUTH);
-        add(roundedPanel, BorderLayout.CENTER);
-
-        pack();
-        setLocationRelativeTo(parent);
-        setShape(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 20, 20));
-    }
-
-    private JPanel createRoundedPanel() {
-        return new JPanel() {
+        JPanel roundedPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
@@ -52,22 +29,32 @@ public class GameOverDialog extends JDialog {
                 g2d.dispose();
             }
         };
-    }
+        roundedPanel.setLayout(new BorderLayout(10, 10));
+        roundedPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-    private JPanel createButtonPanel() {
+        JLabel messageLabel = new JLabel("Chọn bên bạn muốn chơi:", SwingConstants.CENTER);
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        messageLabel.setForeground(Color.WHITE);
+        roundedPanel.add(messageLabel, BorderLayout.NORTH);
+
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
 
-        JButton restartButton = createStyledButton("Chơi lại");
-        restartButton.addActionListener(this::onRestart);
-        buttonPanel.add(restartButton);
+        JButton whiteButton = createStyledButton("Trắng");
+        whiteButton.addActionListener(this::onWhiteSelected);
+        buttonPanel.add(whiteButton);
 
-        JButton exitButton = createStyledButton("Thoát");
-        exitButton.addActionListener(this::onExit);
-        buttonPanel.add(exitButton);
+        JButton blackButton = createStyledButton("Đen");
+        blackButton.addActionListener(this::onBlackSelected);
+        buttonPanel.add(blackButton);
 
-        return buttonPanel;
+        roundedPanel.add(buttonPanel, BorderLayout.CENTER);
+        add(roundedPanel, BorderLayout.CENTER);
+
+        pack();
+        setLocationRelativeTo(parent);
+        setShape(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 20, 20));
     }
 
     private JButton createStyledButton(String text) {
@@ -76,13 +63,19 @@ public class GameOverDialog extends JDialog {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(getModel().isPressed() ? new Color(50, 50, 50) : getModel().isRollover() ? new Color(70, 70, 70) : new Color(60, 60, 60));
+                if (getModel().isPressed()) {
+                    g2d.setColor(new Color(50, 50, 50));
+                } else if (getModel().isRollover()) {
+                    g2d.setColor(new Color(70, 70, 70));
+                } else {
+                    g2d.setColor(new Color(60, 60, 60));
+                }
                 g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
                 g2d.setColor(Color.WHITE);
                 FontMetrics metrics = g2d.getFontMetrics();
-                int x = (getWidth() - metrics.stringWidth(getText())) / 2;
-                int y = (getHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
-                g2d.drawString(getText(), x, y);
+                int textX = (getWidth() - metrics.stringWidth(getText())) / 2;
+                int textY = ((getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
+                g2d.drawString(getText(), textX, textY);
                 g2d.dispose();
             }
 
@@ -100,17 +93,17 @@ public class GameOverDialog extends JDialog {
         return button;
     }
 
-    private void onRestart(ActionEvent e) {
+    private void onWhiteSelected(ActionEvent e) {
+        selectedColor = PieceColor.WHITE;
         dispose();
-        parentFrame.dispose();
-        logger.info("Restart game");
-        ChessLauncher.launch();
     }
 
-    private void onExit(ActionEvent e) {
+    private void onBlackSelected(ActionEvent e) {
+        selectedColor = PieceColor.BLACK;
         dispose();
-        parentFrame.dispose();
-        logger.info("Exit game");
-        System.exit(0);
+    }
+
+    public PieceColor getSelectedColor() {
+        return selectedColor;
     }
 }

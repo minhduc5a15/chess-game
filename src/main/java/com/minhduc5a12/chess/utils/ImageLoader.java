@@ -26,9 +26,9 @@ public class ImageLoader {
     }
 
     public static void preloadImages() {
-        String[] paths = {"images/white_pawn.png", "images/black_pawn.png", "images/white_rook.png", "images/black_rook.png", "images/white_knight.png", "images/black_knight.png", "images/white_bishop.png", "images/black_bishop.png", "images/white_queen.png", "images/black_queen.png", "images/white_king.png", "images/black_king.png"};
-        for (String path : paths) {
-            getImage(path, 95, 95);
+        String[] chessPieceName = {"white_pawn.png", "black_pawn.png", "white_rook.png", "black_rook.png", "white_knight.png", "black_knight.png", "white_bishop.png", "black_bishop.png", "white_queen.png", "black_queen.png", "white_king.png", "black_king.png"};
+        for (String name : chessPieceName) {
+            getImage("images/pieces/" + name, 95, 95);
         }
         getImage("images/chessboard.png", 800, 800);
     }

@@ -1,15 +1,16 @@
 package com.minhduc5a12.chess.pieces;
 
-import com.minhduc5a12.chess.constants.PieceColor;
-import com.minhduc5a12.chess.model.*;
-import com.minhduc5a12.chess.utils.BoardUtils;
-import com.minhduc5a12.chess.utils.ImageLoader;
+import java.awt.Image;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.Image;
-import java.util.ArrayList;
-import java.util.List;
+import com.minhduc5a12.chess.constants.PieceColor;
+import com.minhduc5a12.chess.model.ChessMove;
+import com.minhduc5a12.chess.model.ChessPosition;
+import com.minhduc5a12.chess.utils.BoardUtils;
+import com.minhduc5a12.chess.utils.ImageLoader;
 
 public abstract class ChessPiece {
     private static final Logger logger = LoggerFactory.getLogger(ChessPiece.class);
@@ -21,7 +22,7 @@ public abstract class ChessPiece {
 
     public ChessPiece(PieceColor color, String imagePath) {
         this.color = color;
-        this.imagePath = "images/" + imagePath;
+        this.imagePath = "images/pieces/" + imagePath;
         logger.debug("Loading image for piece: {}", this.imagePath);
         this.image = ImageLoader.getImage(this.imagePath, 95, 95);
         if (this.image == null) {

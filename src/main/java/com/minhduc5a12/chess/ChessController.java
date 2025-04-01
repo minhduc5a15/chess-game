@@ -1,9 +1,11 @@
 package com.minhduc5a12.chess;
 
+import com.minhduc5a12.chess.constants.GameMode;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.pieces.*;
+import com.minhduc5a12.chess.players.StockfishPlayer;
 import com.minhduc5a12.chess.ui.GameOverDialog;
 import com.minhduc5a12.chess.ui.PromotionDialog;
 import com.minhduc5a12.chess.utils.BoardUtils;
@@ -13,13 +15,16 @@ import javax.swing.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class GameController extends BoardManager implements MoveExecutor {
+public class ChessController extends BoardManager implements MoveExecutor {
     private static final int FIFTY_MOVE_RULE_LIMIT = 50;
     private boolean gameEnded;
     private JFrame frame;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private StockfishPlayer stockfishPlayer;
+    private int gameMode = -1;
+    private PieceColor humanPlayerColor;
 
-    public GameController() {
+    public ChessController() {
         super();
         this.gameEnded = false;
         setupInitialPosition();
@@ -27,6 +32,22 @@ public class GameController extends BoardManager implements MoveExecutor {
 
     public void setFrame(JFrame frame) {
         this.frame = frame;
+    }
+
+    public void setPlayerVsAI(PieceColor humanColor) {
+        this.gameMode = GameMode.PLAYER_VS_AI;
+        this.humanPlayerColor = humanColor;
+        this.stockfishPlayer = new StockfishPlayer(this, humanColor.getOpponent());
+        if (humanColor.isBlack()) {
+            stockfishPlayer.makeMove();
+        }
+    }
+
+    // Thiết lập chế độ AI vs AI
+    public void setAIVsAI() {
+        this.gameMode = GameMode.AI_VS_AI;
+        this.stockfishPlayer = new StockfishPlayer(this, PieceColor.WHITE);
+        stockfishPlayer.makeMove();
     }
 
     @Override
@@ -66,7 +87,7 @@ public class GameController extends BoardManager implements MoveExecutor {
         updatePieceMovement(move);
 
         updateBoardStateHistory();
-        if (BoardUtils.isThreefoldRepetition(this)) { // Kiểm tra ngay tại đây, đồng bộ
+        if (BoardUtils.isThreefoldRepetition(this)) {
             gameEnded = true;
             SwingUtilities.invokeLater(() -> {
                 GameOverDialog dialog = new GameOverDialog(frame, "Hòa do lặp lại 3 lần!");
@@ -74,7 +95,6 @@ public class GameController extends BoardManager implements MoveExecutor {
             });
             logger.info("Game ended due to threefold repetition (FIDE)");
             repaintTiles(startTile, endTile);
-
             return true;
         }
 
@@ -89,17 +109,17 @@ public class GameController extends BoardManager implements MoveExecutor {
 
         boolean isCheck = BoardUtils.isKingInCheck(currentPlayerColor, getChessPieceMap());
 
-        if (isCapture) {
-            SoundPlayer.playCaptureSound();
-        } else if (isCheck) {
+        if (isCheck) {
             SoundPlayer.playMoveCheckSound();
+        } else if (isCapture) {
+            SoundPlayer.playCaptureSound();
         } else {
             SoundPlayer.playMoveSound();
         }
 
         logger.debug("Executed move: {} to {}", move.start().toChessNotation(), move.end().toChessNotation());
 
-        executor.submit(this::checkGameEndConditions); // Các điều kiện khác vẫn chạy bất đồng bộ
+        executor.submit(this::checkGameEndConditions);
 
         return true;
     }
@@ -244,36 +264,45 @@ public class GameController extends BoardManager implements MoveExecutor {
 
     public boolean movePiece(ChessMove move) {
         ChessPiece piece = getPiece(move.start());
+        boolean moveSuccessful = false;
+
         switch (piece) {
             case null -> {
                 return false;
             }
-
             case King king when Math.abs(move.end().col() - move.start().col()) == 2 -> {
                 boolean isKingside = move.end().col() > move.start().col();
                 if (performCastling(isKingside, piece.getColor())) {
                     SoundPlayer.playCastleSound();
-                    return true;
+                    moveSuccessful = true;
                 } else {
                     SoundPlayer.playMoveIllegal();
-                    return false;
+                    moveSuccessful = false;
                 }
             }
-
             case Pawn pawn when getPiece(move.end()) == null && move.start().col() != move.end().col() && Math.abs(move.start().row() - move.end().row()) == 1 -> {
                 if (performEnPassant(move)) {
                     SoundPlayer.playCaptureSound();
-                    return true;
+                    moveSuccessful = true;
                 } else {
                     SoundPlayer.playMoveIllegal();
-                    return false;
+                    moveSuccessful = false;
                 }
             }
             default -> {
+                moveSuccessful = executeMove(move);
             }
         }
 
-        return executeMove(move);
+        if (moveSuccessful && stockfishPlayer != null) {
+            if (gameMode == GameMode.PLAYER_VS_AI && currentPlayerColor != humanPlayerColor) {
+                stockfishPlayer.makeMove();
+            } else if (gameMode == GameMode.AI_VS_AI) {
+                stockfishPlayer.makeMove();
+            }
+        }
+
+        return moveSuccessful;
     }
 
     private void showGameOverDialog() {
@@ -289,6 +318,9 @@ public class GameController extends BoardManager implements MoveExecutor {
     public void shutdown() {
         executor.shutdown();
         SoundPlayer.shutdown();
+        if (this.gameMode == GameMode.AI_VS_AI) {
+            stockfishPlayer.shutdown();
+        }
     }
 
     private void checkGameEndConditions() {
@@ -317,5 +349,8 @@ public class GameController extends BoardManager implements MoveExecutor {
             });
             logger.info("Game ended due to stalemate");
         }
+    }
+    public int getGameMode() {
+        return gameMode;
     }
 }

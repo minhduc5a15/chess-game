@@ -10,12 +10,12 @@ import java.awt.*;
 public class ChessBoard extends JPanel {
     private static final Logger logger = LoggerFactory.getLogger(ChessBoard.class);
     private static final int BOARD_SIZE = 800;
-    private final GameController gameController;
+    private final ChessController chessController;
     private final Image boardImage;
     private boolean isFlipped = false;
 
-    public ChessBoard(GameController gameController) {
-        this.gameController = gameController;
+    public ChessBoard(ChessController chessController) {
+        this.chessController = chessController;
         this.boardImage = ImageLoader.getImage("images/chessboard.png", BOARD_SIZE, BOARD_SIZE);
         setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
         setOpaque(true);
@@ -31,7 +31,7 @@ public class ChessBoard extends JPanel {
 
     private void initializeBoard() {
         removeAll();
-        ChessTile[][] tiles = gameController.getTiles();
+        ChessTile[][] tiles = chessController.getTiles();
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 int displayRow = isFlipped ? 7 - row : row;

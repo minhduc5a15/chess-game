@@ -1,17 +1,17 @@
 package com.minhduc5a12.chess;
 
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-
-import javax.swing.*;
-
+import com.minhduc5a12.chess.constants.GameMode;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.pieces.ChessPiece;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 public class ChessTile extends JPanel {
     private static final Logger logger = LoggerFactory.getLogger(ChessTile.class);
@@ -25,22 +25,22 @@ public class ChessTile extends JPanel {
     private boolean isLeftClickSelected;
     private boolean isValidMove;
     private boolean isLastMove;
-    private final GameController gameController;
+    private final ChessController chessController;
 
-    public ChessTile(ChessPosition position, int tileSize, GameController gameController) {
+    public ChessTile(ChessPosition position, int tileSize, ChessController chessController) {
         this.position = position;
         this.tileSize = tileSize;
         this.pieceSize = 95;
         this.isLeftClickSelected = this.isValidMove = this.isLastMove = false;
-        this.gameController = gameController;
+        this.chessController = chessController;
         setPreferredSize(new Dimension(tileSize, tileSize));
         setOpaque(false);
         addMouseListener(new ChessTileMouseListener());
         addMouseMotionListener(new ChessTileMouseMotionListener());
     }
 
-    public ChessTile(ChessPosition position, GameController gameController) {
-        this(position, DEFAULT_TILE_SIZE, gameController);
+    public ChessTile(ChessPosition position, ChessController chessController) {
+        this(position, DEFAULT_TILE_SIZE, chessController);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class ChessTile extends JPanel {
         if (isLastMove) {
             g2d.setColor(new Color(0, 0, 0, 50));
             g2d.fillRect(0, 0, DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
-            g2d.setColor(gameController.getPiece(gameController.getLastMove().end()).getColor().isWhite() ? new Color(0, 211, 255) : new Color(255, 24, 62));
+            g2d.setColor(chessController.getPiece(chessController.getLastMove().end()).getColor().isWhite() ? new Color(0, 211, 255) : new Color(255, 24, 62));
             g2d.setStroke(new BasicStroke(4));
             g2d.drawRect(0, 0, DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
         }
@@ -147,20 +147,21 @@ public class ChessTile extends JPanel {
     private class ChessTileMouseListener extends MouseAdapter {
         @Override
         public void mouseClicked(MouseEvent e) {
+            if (chessController.getGameMode() == GameMode.AI_VS_AI) return;
             if (e.getButton() == MouseEvent.BUTTON1) {
-                ChessTile selectedTile = gameController.getCurrentLeftClickedTile();
+                ChessTile selectedTile = chessController.getCurrentLeftClickedTile();
                 if (selectedTile == null) {
                     // Chọn ô có quân cờ, chỉ khi quân cờ thuộc về người chơi hiện tại
-                    if (piece != null && piece.getColor() == gameController.getCurrentPlayerColor()) {
-                        gameController.setCurrentLeftClickedTile(ChessTile.this);
+                    if (piece != null && piece.getColor() == chessController.getCurrentPlayerColor()) {
+                        chessController.setCurrentLeftClickedTile(ChessTile.this);
                         logger.debug("Selected piece at: {}", position.toChessNotation());
                     }
                 } else {
                     // Di chuyển quân bằng ChessMove
                     ChessMove move = new ChessMove(selectedTile.getPosition(), position);
-                    if (gameController.movePiece(move)) {
+                    if (chessController.movePiece(move)) {
                         logger.debug("Moved piece from {} to {}", move.start().toChessNotation(), move.end().toChessNotation());
-                        gameController.setCurrentLeftClickedTile(null);
+                        chessController.setCurrentLeftClickedTile(null);
                     }
                 }
             }

@@ -18,7 +18,6 @@ public class SoundPlayer {
     private static final Map<String, Boolean> soundCache = new HashMap<>();
 
     static {
-        // Khởi động thread pool và preload ngay khi class được load
         warmUpThreadPool();
         preloadSounds();
     }
@@ -56,18 +55,13 @@ public class SoundPlayer {
     }
 
     private static void warmUpThreadPool() {
-        // Chạy task rỗng để khởi động thread pool
         soundExecutor.submit(() -> {
             logger.debug("Warming up sound thread pool");
         });
     }
 
     public static void preloadSounds() {
-        String[] sounds = {
-                "sounds/move-self.mp3", "sounds/capture.mp3",
-                "sounds/castle.mp3", "sounds/move-check.mp3",
-                "sounds/illegal.mp3"
-        };
+        String[] sounds = {"sounds/move-self.mp3", "sounds/capture.mp3", "sounds/castle.mp3", "sounds/move-check.mp3", "sounds/illegal.mp3"};
         for (String sound : sounds) {
             if (!soundCache.containsKey(sound)) {
                 InputStream inputStream = null;
@@ -78,10 +72,9 @@ public class SoundPlayer {
                         logger.error("Sound file not found during preload: {}", sound);
                         continue;
                     }
-                    // Tạo Player và chạy thử để warm-up decoder
                     BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
                     Player player = new Player(bufferedStream);
-                    player.close(); // Không phát, chỉ khởi tạo
+                    player.close();
                     soundCache.put(sound, true);
                     logger.debug("Preloaded sound: {}", sound);
                 } catch (JavaLayerException e) {

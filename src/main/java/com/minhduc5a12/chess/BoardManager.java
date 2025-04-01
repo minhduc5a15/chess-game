@@ -36,7 +36,7 @@ public class BoardManager {
         this.currentValidMoves = new ArrayList<>();
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
-                tiles[row][col] = new ChessTile(new ChessPosition(col, 7 - row), (GameController) this);
+                tiles[row][col] = new ChessTile(new ChessPosition(col, 7 - row), (ChessController) this);
             }
         }
         this.lastMove = null;
