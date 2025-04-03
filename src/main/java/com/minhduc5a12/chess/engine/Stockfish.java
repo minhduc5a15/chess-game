@@ -47,7 +47,6 @@ public class Stockfish {
         }
     }
 
-    @SuppressWarnings("UseSpecificCatch")
     public void sendCommand(String command) {
         try {
             logger.debug("Sending command to Stockfish: {}", command);
@@ -75,7 +74,7 @@ public class Stockfish {
 
     public String getBestMove(String fen) {
         sendCommand("position fen " + fen);
-        sendCommand("go depth 15");
+        sendCommand("go depth 30");
         List<String> output = getOutput();
         for (String line : output) {
             if (line.startsWith("bestmove")) {
@@ -108,5 +107,4 @@ public class Stockfish {
             }
         });
     }
-    
 }

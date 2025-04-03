@@ -277,7 +277,6 @@ public class ChessController extends BoardManager implements MoveExecutor {
                     moveSuccessful = true;
                 } else {
                     SoundPlayer.playMoveIllegal();
-                    moveSuccessful = false;
                 }
             }
             case Pawn pawn when getPiece(move.end()) == null && move.start().col() != move.end().col() && Math.abs(move.start().row() - move.end().row()) == 1 -> {
@@ -286,7 +285,6 @@ public class ChessController extends BoardManager implements MoveExecutor {
                     moveSuccessful = true;
                 } else {
                     SoundPlayer.playMoveIllegal();
-                    moveSuccessful = false;
                 }
             }
             default -> {
@@ -350,7 +348,15 @@ public class ChessController extends BoardManager implements MoveExecutor {
             logger.info("Game ended due to stalemate");
         }
     }
+
     public int getGameMode() {
         return gameMode;
+    }
+
+    public PieceColor getHumanPlayerColor() {
+        if (gameMode == GameMode.PLAYER_VS_AI) {
+            return humanPlayerColor;
+        }
+        return null;
     }
 }

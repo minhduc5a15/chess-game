@@ -96,10 +96,6 @@ public class ChessTile extends JPanel {
         return position;
     }
 
-    public String getChessNotation() {
-        return position.toChessNotation();
-    }
-
     public ChessPiece getPiece() {
         return piece;
     }
@@ -119,24 +115,12 @@ public class ChessTile extends JPanel {
         repaint();
     }
 
-    public boolean isLeftClickSelected() {
-        return isLeftClickSelected;
-    }
-
-    public boolean isValidMove() {
-        return isValidMove;
-    }
-
     public int getCol() {
         return position.col();
     }
 
     public int getRow() {
         return position.row();
-    }
-
-    public boolean isLastMove() {
-        return isLastMove;
     }
 
     public void setLastMove(boolean lastMove) {
@@ -147,17 +131,24 @@ public class ChessTile extends JPanel {
     private class ChessTileMouseListener extends MouseAdapter {
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (chessController.getGameMode() == GameMode.AI_VS_AI) return;
+            if (chessController.isGameEnded() || chessController.getGameMode() == GameMode.AI_VS_AI) {
+                return;
+            }
+
+            if (chessController.getGameMode() == GameMode.PLAYER_VS_AI) {
+                if (chessController.getCurrentPlayerColor() != chessController.getHumanPlayerColor()) {
+                    return;
+                }
+            }
+
             if (e.getButton() == MouseEvent.BUTTON1) {
                 ChessTile selectedTile = chessController.getCurrentLeftClickedTile();
                 if (selectedTile == null) {
-                    // Chọn ô có quân cờ, chỉ khi quân cờ thuộc về người chơi hiện tại
                     if (piece != null && piece.getColor() == chessController.getCurrentPlayerColor()) {
                         chessController.setCurrentLeftClickedTile(ChessTile.this);
                         logger.debug("Selected piece at: {}", position.toChessNotation());
                     }
                 } else {
-                    // Di chuyển quân bằng ChessMove
                     ChessMove move = new ChessMove(selectedTile.getPosition(), position);
                     if (chessController.movePiece(move)) {
                         logger.debug("Moved piece from {} to {}", move.start().toChessNotation(), move.end().toChessNotation());
@@ -175,7 +166,6 @@ public class ChessTile extends JPanel {
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 return;
             }
-
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
     }

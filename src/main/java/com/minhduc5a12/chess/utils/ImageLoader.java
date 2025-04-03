@@ -33,9 +33,9 @@ public class ImageLoader {
         getImage("images/chessboard.png", 800, 800);
     }
 
-    public static Image rotateImage(BufferedImage original, double degrees) {
-        int w = original.getWidth();
-        int h = original.getHeight();
+    public static Image rotateImage(Image original, double degrees) {
+        int w = original.getWidth(null);
+        int h = original.getHeight(null);
         BufferedImage rotated = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = rotated.createGraphics();
         g2d.rotate(Math.toRadians(degrees), w / 2.0, h / 2.0);
