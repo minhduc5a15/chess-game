@@ -28,7 +28,6 @@ public class ChessUI {
         frame.setResizable(false);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
-
         mainPanel.setBackground(new Color(30, 30, 30));
 
         // ChessBoard
@@ -37,33 +36,35 @@ public class ChessUI {
 
         logger.info("Game mode selected {}", chessController.getGameMode());
 
+        PlayerPanel whitePlayerPanel;
+        PlayerPanel blackPlayerPanel;
         switch (chessController.getGameMode()) {
             case GameMode.AI_VS_AI -> {
-                PlayerPanel playerPanel = new PlayerPanel("AI", PieceColor.WHITE, "images/stockfish.png");
-                mainPanel.add(playerPanel, BorderLayout.WEST);
-                playerPanel = new PlayerPanel("AI", PieceColor.BLACK, "images/stockfish.png");
-                mainPanel.add(playerPanel, BorderLayout.EAST);
+                whitePlayerPanel = new PlayerPanel("AI", PieceColor.WHITE, "images/stockfish.png");
+                mainPanel.add(whitePlayerPanel, BorderLayout.WEST);
+                blackPlayerPanel = new PlayerPanel("AI", PieceColor.BLACK, "images/stockfish.png");
+                mainPanel.add(blackPlayerPanel, BorderLayout.EAST);
             }
             case GameMode.PLAYER_VS_AI -> {
                 PieceColor playerColor = chessController.getHumanPlayerColor();
-                PlayerPanel playerPanel = new PlayerPanel("You", playerColor, "images/player.png");
-                mainPanel.add(playerPanel, BorderLayout.WEST);
-                playerPanel = new PlayerPanel("AI", playerColor.isWhite() ? PieceColor.BLACK : PieceColor.WHITE, "images/stockfish.png");
-                mainPanel.add(playerPanel, BorderLayout.EAST);
+                whitePlayerPanel = new PlayerPanel("You", playerColor, "images/player.png");
+                mainPanel.add(whitePlayerPanel, BorderLayout.WEST);
+                blackPlayerPanel = new PlayerPanel("AI", playerColor.isWhite() ? PieceColor.BLACK : PieceColor.WHITE, "images/stockfish.png");
+                mainPanel.add(blackPlayerPanel, BorderLayout.EAST);
             }
             case GameMode.PLAYER_VS_PLAYER -> {
-                PlayerPanel player1Panel = new PlayerPanel("Player 1", PieceColor.WHITE, "images/player.png");
-                mainPanel.add(player1Panel, BorderLayout.WEST);
-                PlayerPanel player2Panel = new PlayerPanel("Player 2", PieceColor.BLACK, "images/player.png");
-                mainPanel.add(player2Panel, BorderLayout.EAST);
+                whitePlayerPanel = new PlayerPanel("Player 1", PieceColor.WHITE, "images/player.png");
+                mainPanel.add(whitePlayerPanel, BorderLayout.WEST);
+                blackPlayerPanel = new PlayerPanel("Player 2", PieceColor.BLACK, "images/player.png");
+                mainPanel.add(blackPlayerPanel, BorderLayout.EAST);
             }
-
             default -> {
                 logger.info("No game mode were selected!");
                 return;
             }
         }
 
+        chessController.setPlayerPanels(whitePlayerPanel, blackPlayerPanel);
 
         MoveHistoryPanel moveHistoryPanel = new MoveHistoryPanel();
         mainPanel.add(moveHistoryPanel, BorderLayout.NORTH);

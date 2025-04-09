@@ -7,11 +7,14 @@ import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.pieces.*;
 import com.minhduc5a12.chess.players.StockfishPlayer;
 import com.minhduc5a12.chess.ui.GameOverDialog;
+import com.minhduc5a12.chess.ui.PlayerPanel;
 import com.minhduc5a12.chess.ui.PromotionDialog;
 import com.minhduc5a12.chess.utils.BoardUtils;
 import com.minhduc5a12.chess.utils.SoundPlayer;
 
 import javax.swing.*;
+import java.util.Comparator;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,15 +26,29 @@ public class ChessController extends BoardManager implements MoveExecutor {
     private StockfishPlayer stockfishPlayer;
     private int gameMode = GameMode.PLAYER_VS_PLAYER;
     private PieceColor humanPlayerColor;
+    private final TreeMap<ChessPiece, Integer> whiteCapturedPieces; // Multiset cho các quân trắng bị ăn
+    private final TreeMap<ChessPiece, Integer> blackCapturedPieces; // Multiset cho các quân đen bị ăn
+    private PlayerPanel whitePlayerPanel; // Tham chiếu đến PlayerPanel của bên trắng
+    private PlayerPanel blackPlayerPanel; // Tham chiếu đến PlayerPanel của bên đen
 
     public ChessController() {
         super();
         this.gameEnded = false;
+        // Khởi tạo TreeMap với Comparator dựa trên pieceValue
+        Comparator<ChessPiece> pieceComparator = Comparator.comparingInt(ChessPiece::getPieceValue);
+        this.whiteCapturedPieces = new TreeMap<>(pieceComparator);
+        this.blackCapturedPieces = new TreeMap<>(pieceComparator);
         setupInitialPosition();
     }
 
     public void setFrame(JFrame frame) {
         this.frame = frame;
+    }
+
+    // Phương thức để thiết lập các PlayerPanel
+    public void setPlayerPanels(PlayerPanel whitePanel, PlayerPanel blackPanel) {
+        this.whitePlayerPanel = whitePanel;
+        this.blackPlayerPanel = blackPanel;
     }
 
     public void setPlayerVsAI(PieceColor humanColor) {
@@ -43,11 +60,20 @@ public class ChessController extends BoardManager implements MoveExecutor {
         }
     }
 
-    // Thiết lập chế độ AI vs AI
     public void setAIVsAI() {
         this.gameMode = GameMode.AI_VS_AI;
         this.stockfishPlayer = new StockfishPlayer(this, PieceColor.WHITE);
         stockfishPlayer.makeMove();
+    }
+
+    private void updatePlayerScores() {
+        int materialAdvantage = getChessPieceMap().getMaterialAdvantage();
+        if (whitePlayerPanel != null && blackPlayerPanel != null) {
+            SwingUtilities.invokeLater(() -> {
+                whitePlayerPanel.updateScore(materialAdvantage);
+                blackPlayerPanel.updateScore(-materialAdvantage); // Điểm số ngược lại cho đen
+            });
+        }
     }
 
     @Override
@@ -74,6 +100,22 @@ public class ChessController extends BoardManager implements MoveExecutor {
 
         ChessTile startTile = getTile(move.start());
         ChessTile endTile = getTile(move.end());
+
+        // Nếu có quân bị ăn, thêm vào danh sách tương ứng và cập nhật PlayerPanel
+        if (isCapture) {
+            ChessPiece capturedPiece = getPiece(move.end());
+            if (capturedPiece.getColor().isWhite()) {
+                whiteCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
+                if (blackPlayerPanel != null) {
+                    SwingUtilities.invokeLater(() -> blackPlayerPanel.addCapturedPiece(capturedPiece));
+                }
+            } else {
+                blackCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
+                if (whitePlayerPanel != null) {
+                    SwingUtilities.invokeLater(() -> whitePlayerPanel.addCapturedPiece(capturedPiece));
+                }
+            }
+        }
 
         if (piece instanceof Pawn && (move.end().row() == 7 || move.end().row() == 0)) {
             piece = promotePawn(move.end(), piece.getColor());
@@ -106,6 +148,7 @@ public class ChessController extends BoardManager implements MoveExecutor {
         }
 
         switchTurn();
+        updatePlayerScores();
 
         boolean isCheck = BoardUtils.isKingInCheck(currentPlayerColor, getChessPieceMap());
 
@@ -172,6 +215,7 @@ public class ChessController extends BoardManager implements MoveExecutor {
         logger.debug("Castling performed: {} for {}", isKingside ? "Kingside" : "Queenside", color);
 
         switchTurn();
+        updatePlayerScores();
         halfmoveClock++;
         executor.submit(this::checkGameEndConditions);
 
@@ -216,6 +260,20 @@ public class ChessController extends BoardManager implements MoveExecutor {
         ChessTile endTile = getTile(move.end());
         ChessTile capturedTile = getTile(lastMove.end());
 
+        // Thêm quân bị ăn (qua en passant) vào danh sách tương ứng và cập nhật PlayerPanel
+        ChessPiece capturedPiece = getPiece(lastMove.end());
+        if (capturedPiece.getColor().isWhite()) {
+            whiteCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
+            if (blackPlayerPanel != null) {
+                SwingUtilities.invokeLater(() -> blackPlayerPanel.addCapturedPiece(capturedPiece));
+            }
+        } else {
+            blackCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
+            if (whitePlayerPanel != null) {
+                SwingUtilities.invokeLater(() -> whitePlayerPanel.addCapturedPiece(capturedPiece));
+            }
+        }
+
         removePiece(lastMove.end());
         removePiece(move.start());
         setPiece(move.end(), piece);
@@ -228,6 +286,7 @@ public class ChessController extends BoardManager implements MoveExecutor {
 
         halfmoveClock = 0;
         switchTurn();
+        updatePlayerScores();
         executor.submit(this::checkGameEndConditions);
 
         return true;

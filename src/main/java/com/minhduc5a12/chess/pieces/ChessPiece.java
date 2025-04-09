@@ -11,32 +11,44 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.util.List;
 
-public abstract class ChessPiece {
+public abstract class ChessPiece implements Comparable<ChessPiece> {
     private static final Logger logger = LoggerFactory.getLogger(ChessPiece.class);
     private final PieceColor color;
-    private final String imagePath;
     private final Image image;
     protected int pieceValue = 0;
     private boolean hasMoved = false;
 
-    public ChessPiece(PieceColor color, String imagePath) {
+    public ChessPiece(PieceColor color, String imageFileName) {
+        this(color, imageFileName, 95);
+    }
+
+    public ChessPiece(PieceColor color, String imageFileName, int size) {
         this.color = color;
-        this.imagePath = "images/pieces/" + imagePath;
-        logger.debug("Loading image for piece: {}", this.imagePath);
-        this.image = ImageLoader.getImage(this.imagePath, 95, 95);
-        if (this.image == null) {
-            logger.error("Failed to load image for piece: {}", this.imagePath);
+        String imagePath = "images/pieces/" + imageFileName;
+        this.image = loadImage(imagePath, size);
+    }
+
+    private Image loadImage(String path, int size) {
+        logger.debug("Loading image for piece: {}", path);
+        final Image loadedImage = ImageLoader.getImage(path, size, size);
+        if (loadedImage == null) {
+            logger.error("Failed to load image for piece: {}", path);
         } else {
-            logger.info("Image loaded successfully for piece: {}", this.imagePath);
+            logger.info("Image loaded successfully for piece: {}", path);
         }
+        return loadedImage;
+    }
+
+    public PieceColor getColor() {
+        return color;
     }
 
     public Image getImage() {
         return image;
     }
 
-    public PieceColor getColor() {
-        return color;
+    public int getPieceValue() {
+        return pieceValue;
     }
 
     public boolean hasMoved() {
@@ -47,30 +59,25 @@ public abstract class ChessPiece {
         this.hasMoved = hasMoved;
     }
 
-    public int getPieceValue() {
-        return pieceValue;
-    }
-
-    public abstract List<ChessMove> generateValidMoves(ChessPosition start, ChessPieceMap pieceMap);
-
     public boolean isValidMove(ChessMove move, ChessPieceMap pieceMap) {
-        List<ChessMove> moves = generateValidMoves(move.start(), pieceMap);
+        final List<ChessMove> moves = generateValidMoves(move.start(), pieceMap);
 
         for (ChessMove chessMove : moves) {
             ChessPieceMap tempMap = BoardUtils.simulateMove(chessMove, pieceMap);
-            if (!BoardUtils.isKingInCheck(this.getColor(), tempMap)) {
-                if (chessMove.equals(move)) {
-                    return true;
-                }
+            if (!BoardUtils.isKingInCheck(this.color, tempMap) && chessMove.equals(move)) {
+                return true;
             }
         }
 
         return false;
     }
 
-    public String getImagePath() {
-        return imagePath;
-    }
+    public abstract List<ChessMove> generateValidMoves(ChessPosition start, ChessPieceMap pieceMap);
 
     public abstract String getPieceNotation();
+
+    @Override
+    public int compareTo(ChessPiece other) {
+        return Integer.compare(this.pieceValue, other.pieceValue);
+    }
 }

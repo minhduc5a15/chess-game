@@ -50,4 +50,18 @@ public class ChessPieceMap {
         }
         return null;
     }
+
+    public int getMaterialAdvantage() {
+        int whiteMaterial = 0;
+        int blackMaterial = 0;
+        for (ChessPiece piece : pieceMap.values()) {
+            if (piece == null) continue;
+            if (piece.getColor().isWhite()) {
+                whiteMaterial += piece.getPieceValue();
+            } else {
+                blackMaterial += piece.getPieceValue();
+            }
+        }
+        return whiteMaterial - blackMaterial;
+    }
 }

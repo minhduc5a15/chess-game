@@ -12,10 +12,18 @@ import java.util.List;
 public class Pawn extends ChessPiece {
     private final BoardManager boardManager;
 
+    {
+        this.pieceValue = 1;
+    }
+
     public Pawn(PieceColor color, BoardManager boardManager) {
         super(color, color.isWhite() ? "white_pawn.png" : "black_pawn.png");
-        this.pieceValue = 1;
         this.boardManager = boardManager;
+    }
+
+    public Pawn(PieceColor color) {
+        super(color, color.isWhite() ? "white_pawn.png" : "black_pawn.png");
+        this.boardManager = null;
     }
 
     @Override
@@ -55,10 +63,7 @@ public class Pawn extends ChessPiece {
         ChessMove lastMove = boardManager.getLastMove();
         if (lastMove != null) {
             ChessPiece lastMovedPiece = pieceMap.getPiece(lastMove.end());
-            if (lastMovedPiece instanceof Pawn &&
-                Math.abs(lastMove.start().row() - lastMove.end().row()) == 2 &&
-                lastMove.end().row() == startRow &&
-                Math.abs(lastMove.end().col() - startCol) == 1) {
+            if (lastMovedPiece instanceof Pawn && Math.abs(lastMove.start().row() - lastMove.end().row()) == 2 && lastMove.end().row() == startRow && Math.abs(lastMove.end().col() - startCol) == 1) {
                 ChessPosition enPassantTarget = new ChessPosition(lastMove.end().col(), startRow + direction);
                 moves.add(new ChessMove(start, enPassantTarget));
             }

@@ -9,9 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Rook extends ChessPiece {
+    {
+        this.pieceValue = 5;
+    }
+
     public Rook(PieceColor color) {
         super(color, color.isWhite() ? "white_rook.png" : "black_rook.png");
-        this.pieceValue = 5;
     }
 
     @Override

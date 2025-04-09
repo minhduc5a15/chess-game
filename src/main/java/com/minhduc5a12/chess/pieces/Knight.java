@@ -8,9 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Knight extends ChessPiece {
+    {
+        this.pieceValue = 3;
+    }
+
     public Knight(PieceColor color) {
         super(color, color.isWhite() ? "white_knight.png" : "black_knight.png");
-        this.pieceValue = 3;
     }
 
     @Override
