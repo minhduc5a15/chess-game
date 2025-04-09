@@ -1,16 +1,16 @@
 package com.minhduc5a12.chess.pieces;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Bishop extends ChessPiece {
     public Bishop(PieceColor color) {
         super(color, color.isWhite() ? "white_bishop.png" : "black_bishop.png");
-        setPieceValue(3);
+        this.pieceValue = 3;
     }
 
     @Override
@@ -42,5 +42,10 @@ public class Bishop extends ChessPiece {
         }
 
         return moves;
+    }
+
+    @Override
+    public String getPieceNotation() {
+        return this.getColor().isWhite() ? "B" : "b";
     }
 }

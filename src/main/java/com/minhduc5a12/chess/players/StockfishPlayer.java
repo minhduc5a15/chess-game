@@ -6,13 +6,12 @@ import com.minhduc5a12.chess.engine.Stockfish;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.utils.ChessNotationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class StockfishPlayer {
     private static final Logger logger = LoggerFactory.getLogger(StockfishPlayer.class);
@@ -20,20 +19,20 @@ public class StockfishPlayer {
     private final ChessController chessController;
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final ChessNotationUtils chessNotationUtils = new ChessNotationUtils();
-    private static final int MOVE_DELAY_TIME = 1500; // milliseconds
-    private final PieceColor stockfishColor; // Thêm thuộc tính màu của Stockfish
+    private static final int MOVE_DELAY_TIME = 1500;
+    private final PieceColor stockfishColor;
 
     public StockfishPlayer(ChessController chessController, PieceColor stockfishColor) {
         this.stockfishEngine = new Stockfish();
-        this.stockfishEngine.start(); // Khởi động engine
+        this.stockfishEngine.start();
         this.chessController = chessController;
-        this.stockfishColor = stockfishColor; // Gán màu cho Stockfish
+        this.stockfishColor = stockfishColor;
         logger.info("Stockfish player initialized with color: {}", stockfishColor.isWhite() ? "White" : "Black");
     }
 
     public void makeMove() {
-        if (chessController.isGameEnded()) return;
         executor.schedule(() -> {
+            if (chessController.isGameEnded()) return;
             try {
                 String bestMoveStr = stockfishEngine.getBestMove(chessNotationUtils.getFEN(chessController));
                 if (bestMoveStr != null) {

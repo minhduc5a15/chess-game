@@ -14,7 +14,7 @@ public class Pawn extends ChessPiece {
 
     public Pawn(PieceColor color, BoardManager boardManager) {
         super(color, color.isWhite() ? "white_pawn.png" : "black_pawn.png");
-        setPieceValue(1);
+        this.pieceValue = 1;
         this.boardManager = boardManager;
     }
 
@@ -65,5 +65,10 @@ public class Pawn extends ChessPiece {
         }
 
         return moves;
+    }
+
+    @Override
+    public String getPieceNotation() {
+        return this.getColor().isWhite() ? "P" : "p";
     }
 }

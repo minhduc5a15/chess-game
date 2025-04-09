@@ -1,5 +1,6 @@
 package com.minhduc5a12.chess;
 
+import com.minhduc5a12.chess.constants.GameMode;
 import com.minhduc5a12.chess.utils.ImageLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +13,11 @@ public class ChessBoard extends JPanel {
     private static final int BOARD_SIZE = 800;
     private final ChessController chessController;
     private final Image boardImage;
-    private boolean isFlipped = false;
+    private boolean isFlipped;
 
     public ChessBoard(ChessController chessController) {
         this.chessController = chessController;
+        this.isFlipped = chessController.getGameMode() == GameMode.PLAYER_VS_AI && chessController.getHumanPlayerColor().isBlack();
         this.boardImage = ImageLoader.getImage("images/chessboard.png", BOARD_SIZE, BOARD_SIZE);
         setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
         setOpaque(true);

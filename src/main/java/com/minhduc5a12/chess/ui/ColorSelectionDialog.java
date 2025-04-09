@@ -1,6 +1,7 @@
 package com.minhduc5a12.chess.ui;
 
 import com.minhduc5a12.chess.constants.PieceColor;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -63,19 +64,13 @@ public class ColorSelectionDialog extends JDialog {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                if (getModel().isPressed()) {
-                    g2d.setColor(new Color(50, 50, 50));
-                } else if (getModel().isRollover()) {
-                    g2d.setColor(new Color(70, 70, 70));
-                } else {
-                    g2d.setColor(new Color(60, 60, 60));
-                }
+                g2d.setColor(getModel().isPressed() ? new Color(92, 51, 23) : getModel().isRollover() ? new Color(160, 82, 45) : new Color(139, 69, 19));
                 g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
                 g2d.setColor(Color.WHITE);
                 FontMetrics metrics = g2d.getFontMetrics();
-                int textX = (getWidth() - metrics.stringWidth(getText())) / 2;
-                int textY = ((getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
-                g2d.drawString(getText(), textX, textY);
+                int x = (getWidth() - metrics.stringWidth(getText())) / 2;
+                int y = (getHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
+                g2d.drawString(getText(), x, y);
                 g2d.dispose();
             }
 
@@ -83,8 +78,19 @@ public class ColorSelectionDialog extends JDialog {
             public Dimension getPreferredSize() {
                 return new Dimension(120, 40);
             }
+
+            @Override
+            public Dimension getMinimumSize() {
+                return getPreferredSize();
+            }
+
+            @Override
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
         };
-        button.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        button.setFont(new Font("Arial", Font.PLAIN, 16));
         button.setForeground(Color.WHITE);
         button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         button.setContentAreaFilled(false);

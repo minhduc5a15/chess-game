@@ -1,6 +1,6 @@
 package com.minhduc5a12.chess.ui;
 
-import com.minhduc5a12.chess.ChessLauncher; // Thay đổi import
+import com.minhduc5a12.chess.ChessLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,10 +44,10 @@ public class GameOverDialog extends JDialog {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gradient = new GradientPaint(0, 0, new Color(40, 40, 40), getWidth(), getHeight(), new Color(20, 20, 20));
+                GradientPaint gradient = new GradientPaint(0, 0, new Color(139, 69, 19), getWidth(), getHeight(), new Color(92, 51, 23));
                 g2d.setPaint(gradient);
                 g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 20, 20));
-                g2d.setColor(new Color(80, 80, 80));
+                g2d.setColor(new Color(80, 40, 20));
                 g2d.draw(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 20, 20));
                 g2d.dispose();
             }
@@ -76,7 +76,7 @@ public class GameOverDialog extends JDialog {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(getModel().isPressed() ? new Color(50, 50, 50) : getModel().isRollover() ? new Color(70, 70, 70) : new Color(60, 60, 60));
+                g2d.setColor(getModel().isPressed() ? new Color(92, 51, 23) : getModel().isRollover() ? new Color(160, 82, 45) : new Color(139, 69, 19));
                 g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
                 g2d.setColor(Color.WHITE);
                 FontMetrics metrics = g2d.getFontMetrics();
@@ -91,7 +91,7 @@ public class GameOverDialog extends JDialog {
                 return new Dimension(120, 40);
             }
         };
-        button.setFont(new Font("Arial", Font.PLAIN, 14));
+        button.setFont(new Font("Georgia", Font.PLAIN, 14));
         button.setForeground(Color.WHITE);
         button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         button.setContentAreaFilled(false);

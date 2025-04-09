@@ -11,7 +11,7 @@ import java.util.List;
 public class Queen extends ChessPiece {
     public Queen(PieceColor color) {
         super(color, color.isWhite() ? "white_queen.png" : "black_queen.png");
-        setPieceValue(9);
+        this.pieceValue = 9;
     }
 
     @Override
@@ -42,7 +42,11 @@ public class Queen extends ChessPiece {
                 newRow += dRow;
             }
         }
-
         return moves;
+    }
+
+    @Override
+    public String getPieceNotation() {
+        return this.getColor().isWhite() ? "Q" : "q";
     }
 }

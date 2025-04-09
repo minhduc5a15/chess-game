@@ -10,7 +10,7 @@ import java.util.List;
 public class Knight extends ChessPiece {
     public Knight(PieceColor color) {
         super(color, color.isWhite() ? "white_knight.png" : "black_knight.png");
-        setPieceValue(3);
+        this.pieceValue = 3;
     }
 
     @Override
@@ -21,8 +21,8 @@ public class Knight extends ChessPiece {
 
         // 8 nước đi chữ L: (±1, ±2) hoặc (±2, ±1)
         int[][] offsets = {
-            {1, 2}, {1, -2}, {-1, 2}, {-1, -2},
-            {2, 1}, {2, -1}, {-2, 1}, {-2, -1}
+                {1, 2}, {1, -2}, {-1, 2}, {-1, -2},
+                {2, 1}, {2, -1}, {-2, 1}, {-2, -1}
         };
 
         for (int[] offset : offsets) {
@@ -31,12 +31,17 @@ public class Knight extends ChessPiece {
             if (newCol >= 0 && newCol <= 7 && newRow >= 0 && newRow <= 7) {
                 ChessPosition pos = new ChessPosition(newCol, newRow);
                 if (!pieceMap.hasPiece(pos) ||
-                    (pieceMap.hasPiece(pos) && pieceMap.getPiece(pos).getColor() != getColor())) {
+                        (pieceMap.hasPiece(pos) && pieceMap.getPiece(pos).getColor() != getColor())) {
                     moves.add(new ChessMove(start, pos));
                 }
             }
         }
 
         return moves;
+    }
+
+    @Override
+    public String getPieceNotation() {
+        return this.getColor().isWhite() ? "N" : "n";
     }
 }

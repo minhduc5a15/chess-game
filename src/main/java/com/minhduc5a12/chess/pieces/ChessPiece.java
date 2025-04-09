@@ -1,23 +1,22 @@
 package com.minhduc5a12.chess.pieces;
 
-import java.awt.Image;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.utils.BoardUtils;
 import com.minhduc5a12.chess.utils.ImageLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.awt.*;
+import java.util.List;
 
 public abstract class ChessPiece {
     private static final Logger logger = LoggerFactory.getLogger(ChessPiece.class);
     private final PieceColor color;
     private final String imagePath;
     private final Image image;
-    private int pieceValue = 0;
+    protected int pieceValue = 0;
     private boolean hasMoved = false;
 
     public ChessPiece(PieceColor color, String imagePath) {
@@ -48,10 +47,6 @@ public abstract class ChessPiece {
         this.hasMoved = hasMoved;
     }
 
-    public void setPieceValue(int value) {
-        this.pieceValue = value;
-    }
-
     public int getPieceValue() {
         return pieceValue;
     }
@@ -61,7 +56,7 @@ public abstract class ChessPiece {
     public boolean isValidMove(ChessMove move, ChessPieceMap pieceMap) {
         List<ChessMove> moves = generateValidMoves(move.start(), pieceMap);
 
-        for (ChessMove chessMove: moves) {
+        for (ChessMove chessMove : moves) {
             ChessPieceMap tempMap = BoardUtils.simulateMove(chessMove, pieceMap);
             if (!BoardUtils.isKingInCheck(this.getColor(), tempMap)) {
                 if (chessMove.equals(move)) {
@@ -76,4 +71,6 @@ public abstract class ChessPiece {
     public String getImagePath() {
         return imagePath;
     }
+
+    public abstract String getPieceNotation();
 }

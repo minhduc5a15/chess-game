@@ -21,7 +21,7 @@ public class ChessController extends BoardManager implements MoveExecutor {
     private JFrame frame;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private StockfishPlayer stockfishPlayer;
-    private int gameMode = -1;
+    private int gameMode = GameMode.PLAYER_VS_PLAYER;
     private PieceColor humanPlayerColor;
 
     public ChessController() {

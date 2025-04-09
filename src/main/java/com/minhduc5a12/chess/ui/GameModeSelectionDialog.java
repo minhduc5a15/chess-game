@@ -8,10 +8,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.geom.RoundRectangle2D;
-import java.io.IOException;
 
 public class GameModeSelectionDialog extends JDialog {
-    private int selectedMode = GameMode.PLAYER_VS_AI; // Mặc định
+    private int selectedMode = GameMode.PLAYER_VS_PLAYER; // Mặc định
     private PieceColor selectedColor = PieceColor.WHITE;
     private static final int FRAME_WIDTH = 400;
     private static final int FRAME_HEIGHT = 600;
@@ -48,10 +47,9 @@ public class GameModeSelectionDialog extends JDialog {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gradient = new GradientPaint(0, 0, new Color(40, 40, 40), getWidth(), getHeight(), new Color(20, 20, 20));
-                g2d.setPaint(gradient);
-                g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 20, 20));
-                g2d.setColor(new Color(80, 80, 80));
+                Image woodTexture = ImageLoader.getImage("images/wood_texture.png", FRAME_WIDTH, FRAME_HEIGHT);
+                g2d.drawImage(woodTexture, 0, 0, getWidth(), getHeight(), this);
+                g2d.setColor(new Color(80, 40, 20));
                 g2d.draw(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 20, 20));
                 g2d.dispose();
             }
@@ -63,11 +61,11 @@ public class GameModeSelectionDialog extends JDialog {
         buttonPanel.setOpaque(false);
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
-        JButton pvpButton = createStyledButton("Người vs Người", "images/handshake.png");
+        JButton pvpButton = createStyledButton("Player vs PLayer");
         pvpButton.addActionListener(this::onPlayerVsPlayerSelected);
-        JButton pvaiButton = createStyledButton("Người vs Máy", null);
+        JButton pvaiButton = createStyledButton("Player vs Bot");
         pvaiButton.addActionListener(this::onPlayerVsAISelected);
-        JButton aivaiButton = createStyledButton("Máy vs Máy", null);
+        JButton aivaiButton = createStyledButton("Bot vs Bot");
         aivaiButton.addActionListener(this::onAIVsAISelected);
 
         buttonPanel.add(Box.createVerticalGlue());
@@ -84,14 +82,13 @@ public class GameModeSelectionDialog extends JDialog {
         return buttonPanel;
     }
 
-    private JButton createStyledButton(String text, String iconPath) {
+    private JButton createStyledButton(String text) {
         JButton button = new JButton(text) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(getModel().isPressed() ? new Color(50, 50, 50) :
-                        getModel().isRollover() ? new Color(70, 70, 70) : new Color(60, 60, 60));
+                g2d.setColor(getModel().isPressed() ? new Color(92, 51, 23) : getModel().isRollover() ? new Color(160, 82, 45) : new Color(139, 69, 19));
                 g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
                 g2d.setColor(Color.WHITE);
                 FontMetrics metrics = g2d.getFontMetrics();
@@ -116,16 +113,6 @@ public class GameModeSelectionDialog extends JDialog {
                 return getPreferredSize();
             }
         };
-
-        if (iconPath != null) {
-            try {
-                java.net.URL imageUrl = ImageLoader.class.getClassLoader().getResource(iconPath);
-                if (imageUrl == null) throw new IOException("Cannot find image: " + iconPath);
-                button.setIcon(new ImageIcon(imageUrl));
-            } catch (Exception e) {
-                System.err.println("Failed to load icon: " + iconPath);
-            }
-        }
 
         button.setFont(new Font("Arial", Font.PLAIN, 16));
         button.setForeground(Color.WHITE);
@@ -152,7 +139,7 @@ public class GameModeSelectionDialog extends JDialog {
     }
 
     private void showColorSelectionDialog() {
-        ColorSelectionDialog colorDialog = new ColorSelectionDialog(null); // Dùng null thay vì parentFrame
+        ColorSelectionDialog colorDialog = new ColorSelectionDialog(null);
         colorDialog.setVisible(true);
         selectedColor = colorDialog.getSelectedColor();
         dispose();

@@ -16,7 +16,7 @@ public class MoveHistoryPanel extends JPanel {
 
     public MoveHistoryPanel() {
         setOpaque(true);
-        setBackground(new Color(40, 40, 40));
+        setBackground(new Color(139, 69, 19));
         setPreferredSize(new Dimension(800, 95));
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
@@ -48,8 +48,8 @@ public class MoveHistoryPanel extends JPanel {
 
         for (String move : moves) {
             JLabel moveLabel = new JLabel(move, SwingConstants.CENTER);
-            moveLabel.setFont(new Font("Roboto", Font.PLAIN, 16));
-            moveLabel.setForeground(Color.WHITE);
+            moveLabel.setFont(new Font("Georgia", Font.PLAIN, 16));
+            moveLabel.setForeground(new Color(245, 245, 220)); // Màu be nhạt
             moveLabel.setPreferredSize(new Dimension(80, 30));
             moveListPanel.add(moveLabel);
             moveListPanel.add(Box.createHorizontalStrut(5));
@@ -61,14 +61,15 @@ public class MoveHistoryPanel extends JPanel {
         scrollPane.setBorder(null);
         scrollPane.setPreferredSize(new Dimension(740, 75));
         scrollPane.getViewport().setOpaque(true);
-        scrollPane.getViewport().setBackground(new Color(40, 40, 40));
+        scrollPane.getViewport().setBackground(new Color(139, 69, 19));
         scrollPane.setOpaque(true);
-        scrollPane.setBackground(new Color(40, 40, 40));
+        scrollPane.setBackground(new Color(139, 69, 19, 90));
 
         Image leftArrowImage = ImageLoader.getImage("images/left-arrow.png", 20, 20);
         JButton leftArrow = new RoundButton("");
         leftArrow.setIcon(new ImageIcon(leftArrowImage));
-        leftArrow.setBackground(new Color(50, 50, 50));
+        leftArrow.setBackground(new Color(92, 51, 23));
+
         leftArrow.setFocusPainted(false);
         leftArrow.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         leftArrow.setMinimumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
@@ -81,7 +82,7 @@ public class MoveHistoryPanel extends JPanel {
         JButton rightArrow = new RoundButton("");
         Image rightArrowImage = ImageLoader.getImage("images/right-arrow.png", 20, 20);
         rightArrow.setIcon(new ImageIcon(rightArrowImage));
-        rightArrow.setBackground(new Color(50, 50, 50));
+        rightArrow.setBackground(new Color(92, 51, 23));
         rightArrow.setFocusPainted(false);
         rightArrow.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         rightArrow.setMinimumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));

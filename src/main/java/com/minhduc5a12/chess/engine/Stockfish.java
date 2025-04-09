@@ -74,7 +74,7 @@ public class Stockfish {
 
     public String getBestMove(String fen) {
         sendCommand("position fen " + fen);
-        sendCommand("go depth 30");
+        sendCommand("go depth 10");
         List<String> output = getOutput();
         for (String line : output) {
             if (line.startsWith("bestmove")) {

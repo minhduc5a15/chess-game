@@ -7,29 +7,29 @@ import javax.swing.*;
 import java.awt.*;
 
 public class PlayerPanel extends JPanel {
-    private final PieceColor pieceColor;
+    private final static int FRAME_WIDTH = 250;
+    private final static int FRAME_HEIGHT = 800;
 
     public PlayerPanel(String playerName, PieceColor pieceColor, String avatarPath) {
-        this.pieceColor = pieceColor;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setOpaque(false);
-        setPreferredSize(new Dimension(250, 800));
+        setOpaque(true);
+        setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
 
         Image avatar = ImageLoader.getImage(avatarPath, 120, 120);
         JLabel avatarLabel = new JLabel(new ImageIcon(avatar));
         avatarLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         avatarLabel.setPreferredSize(new Dimension(120, 120));
-        avatarLabel.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 0)); // Viền vuông
+        avatarLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         JLabel nameLabel = new JLabel(playerName, SwingConstants.CENTER);
-        nameLabel.setFont(new Font("Roboto", Font.BOLD, 22));
+        nameLabel.setFont(new Font("Georgia", Font.BOLD, 22));
         nameLabel.setForeground(Color.WHITE);
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel colorLabel = new JLabel("Color: " + (pieceColor.isWhite() ? "White" : "Black"), SwingConstants.CENTER);
-        colorLabel.setFont(new Font("Roboto", Font.ITALIC, 18));
-        colorLabel.setForeground(Color.LIGHT_GRAY);
+        colorLabel.setFont(new Font("Georgia", Font.ITALIC, 18));
+        colorLabel.setForeground(new Color(245, 245, 220));
         colorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         add(Box.createVerticalGlue());
@@ -46,11 +46,11 @@ public class PlayerPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2d = (Graphics2D) g;
+        Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    }
-
-    public PieceColor getPieceColor() {
-        return pieceColor;
+        GradientPaint gradient = new GradientPaint(0, 0, new Color(139, 69, 19), getWidth(), getHeight(), new Color(92, 51, 23));
+        g2d.setPaint(gradient);
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+        g2d.dispose();
     }
 }

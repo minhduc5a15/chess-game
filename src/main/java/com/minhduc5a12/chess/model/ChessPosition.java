@@ -18,10 +18,6 @@ public record ChessPosition(int col, int row) {
         return "" + file + rank;
     }
 
-    public static ChessPosition toChessPosition(int row, int col) {
-        return new ChessPosition(row, 7 - col);
-    }
-
     public static ChessPosition toChessPosition(String chessNotation) {
         if (chessNotation == null || chessNotation.length() != 2) {
             throw new IllegalArgumentException("Invalid chess notation: " + chessNotation);

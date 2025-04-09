@@ -11,7 +11,7 @@ import java.util.List;
 public class Rook extends ChessPiece {
     public Rook(PieceColor color) {
         super(color, color.isWhite() ? "white_rook.png" : "black_rook.png");
-        setPieceValue(5);
+        this.pieceValue = 5;
     }
 
     @Override
@@ -42,7 +42,11 @@ public class Rook extends ChessPiece {
                 newRow += dRow;
             }
         }
-
         return moves;
+    }
+
+    @Override
+    public String getPieceNotation() {
+        return this.getColor().isWhite() ? "R" : "r";
     }
 }

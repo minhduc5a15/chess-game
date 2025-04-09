@@ -1,12 +1,11 @@
 package com.minhduc5a12.chess.utils;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.imageio.ImageIO;
 
 public class ImageLoader {
     private static final Map<String, Image> imageCache = new HashMap<>();

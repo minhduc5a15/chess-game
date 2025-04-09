@@ -28,7 +28,7 @@ public class ChessNotationUtils {
                         fen.append(emptyCount);
                         emptyCount = 0;
                     }
-                    fen.append(getPieceNotation(piece));
+                    fen.append(piece.getPieceNotation());
                 }
             }
             if (emptyCount > 0) {
@@ -99,19 +99,5 @@ public class ChessNotationUtils {
         String[] parts = fullFen.split(" ");
 
         return String.join(" ", parts[0], parts[1], parts[2], parts[3]);
-    }
-
-    private char getPieceNotation(ChessPiece piece) {
-        String className = piece.getClass().getSimpleName();
-        char notation = switch (className) {
-            case "Pawn" -> 'p';
-            case "Rook" -> 'r';
-            case "Knight" -> 'n';
-            case "Bishop" -> 'b';
-            case "Queen" -> 'q';
-            case "King" -> 'k';
-            default -> throw new IllegalArgumentException("Unknown piece type: " + className);
-        };
-        return piece.getColor() == PieceColor.WHITE ? Character.toUpperCase(notation) : notation;
     }
 }
