@@ -1,22 +1,31 @@
 package com.minhduc5a12.chess;
 
+import java.util.Comparator;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
 import com.minhduc5a12.chess.constants.GameMode;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
-import com.minhduc5a12.chess.pieces.*;
+import com.minhduc5a12.chess.pieces.Bishop;
+import com.minhduc5a12.chess.pieces.ChessPiece;
+import com.minhduc5a12.chess.pieces.ChessPieceMap;
+import com.minhduc5a12.chess.pieces.King;
+import com.minhduc5a12.chess.pieces.Knight;
+import com.minhduc5a12.chess.pieces.Pawn;
+import com.minhduc5a12.chess.pieces.Queen;
+import com.minhduc5a12.chess.pieces.Rook;
 import com.minhduc5a12.chess.players.StockfishPlayer;
 import com.minhduc5a12.chess.ui.GameOverDialog;
 import com.minhduc5a12.chess.ui.PlayerPanel;
 import com.minhduc5a12.chess.ui.PromotionDialog;
 import com.minhduc5a12.chess.utils.BoardUtils;
 import com.minhduc5a12.chess.utils.SoundPlayer;
-
-import javax.swing.*;
-import java.util.Comparator;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ChessController extends BoardManager implements MoveExecutor {
     private static final int FIFTY_MOVE_RULE_LIMIT = 50;
@@ -73,6 +82,18 @@ public class ChessController extends BoardManager implements MoveExecutor {
                 whitePlayerPanel.updateScore(materialAdvantage);
                 blackPlayerPanel.updateScore(-materialAdvantage); // Điểm số ngược lại cho đen
             });
+        }
+    }
+
+    private void activateTurn() {
+        if (whitePlayerPanel != null && blackPlayerPanel != null) {
+            if (currentPlayerColor.isWhite()) {
+                whitePlayerPanel.setActiveTurn(true);
+                blackPlayerPanel.setActiveTurn(false);
+            } else {
+                whitePlayerPanel.setActiveTurn(false);
+                blackPlayerPanel.setActiveTurn(true);
+            }
         }
     }
 
@@ -148,6 +169,7 @@ public class ChessController extends BoardManager implements MoveExecutor {
         }
 
         switchTurn();
+        activateTurn();
         updatePlayerScores();
 
         boolean isCheck = BoardUtils.isKingInCheck(currentPlayerColor, getChessPieceMap());
@@ -181,7 +203,8 @@ public class ChessController extends BoardManager implements MoveExecutor {
             return false;
         }
 
-        boolean canCastle = isKingside ? kingPiece.canCastleKingside(kingPos, getChessPieceMap()) : kingPiece.canCastleQueenside(kingPos, getChessPieceMap());
+        boolean canCastle = isKingside ? kingPiece.canCastleKingside(kingPos, getChessPieceMap())
+                : kingPiece.canCastleQueenside(kingPos, getChessPieceMap());
         if (!canCastle) {
             logger.debug("Cannot castle {} for {}", isKingside ? "kingside" : "queenside", color);
             return false;
@@ -237,7 +260,9 @@ public class ChessController extends BoardManager implements MoveExecutor {
         }
 
         ChessPiece lastMovedPiece = getPiece(lastMove.end());
-        if (!(lastMovedPiece instanceof Pawn) || Math.abs(lastMove.start().row() - lastMove.end().row()) != 2 || lastMove.end().row() != move.start().row() || Math.abs(lastMove.end().col() - move.start().col()) != 1) {
+        if (!(lastMovedPiece instanceof Pawn) || Math.abs(lastMove.start().row() - lastMove.end().row()) != 2
+                || lastMove.end().row() != move.start().row()
+                || Math.abs(lastMove.end().col() - move.start().col()) != 1) {
             logger.debug("Last move does not qualify for en passant");
             return false;
         }
@@ -260,7 +285,8 @@ public class ChessController extends BoardManager implements MoveExecutor {
         ChessTile endTile = getTile(move.end());
         ChessTile capturedTile = getTile(lastMove.end());
 
-        // Thêm quân bị ăn (qua en passant) vào danh sách tương ứng và cập nhật PlayerPanel
+        // Thêm quân bị ăn (qua en passant) vào danh sách tương ứng và cập nhật
+        // PlayerPanel
         ChessPiece capturedPiece = getPiece(lastMove.end());
         if (capturedPiece.getColor().isWhite()) {
             whiteCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
@@ -282,7 +308,8 @@ public class ChessController extends BoardManager implements MoveExecutor {
         updateBoardStateHistory();
 
         repaintTiles(startTile, endTile, capturedTile);
-        logger.info("En passant performed: {} to {}, captured at {}", move.start().toChessNotation(), move.end().toChessNotation(), lastMove.end().toChessNotation());
+        logger.info("En passant performed: {} to {}, captured at {}", move.start().toChessNotation(),
+                move.end().toChessNotation(), lastMove.end().toChessNotation());
 
         halfmoveClock = 0;
         switchTurn();
@@ -300,21 +327,14 @@ public class ChessController extends BoardManager implements MoveExecutor {
         ChessPiece promotedPiece;
 
         switch (selectedPiece) {
-            case "Queen":
-                promotedPiece = new Queen(color);
-                break;
-            case "Rook":
-                promotedPiece = new Rook(color);
-                break;
-            case "Bishop":
-                promotedPiece = new Bishop(color);
-                break;
-            case "Knight":
-                promotedPiece = new Knight(color);
-                break;
-            default:
+            case "Queen" -> promotedPiece = new Queen(color);
+            case "Rook" -> promotedPiece = new Rook(color);
+            case "Bishop" -> promotedPiece = new Bishop(color);
+            case "Knight" -> promotedPiece = new Knight(color);
+            default -> {
                 promotedPiece = new Queen(color);
                 logger.error("Invalid promotion choice: {}, defaulting to Queen", selectedPiece);
+            }
         }
 
         logger.info("Pawn promoted to {} at {}", selectedPiece, position.toChessNotation());
@@ -338,7 +358,8 @@ public class ChessController extends BoardManager implements MoveExecutor {
                     SoundPlayer.playMoveIllegal();
                 }
             }
-            case Pawn pawn when getPiece(move.end()) == null && move.start().col() != move.end().col() && Math.abs(move.start().row() - move.end().row()) == 1 -> {
+            case Pawn pawn when getPiece(move.end()) == null && move.start().col() != move.end().col()
+                    && Math.abs(move.start().row() - move.end().row()) == 1 -> {
                 if (performEnPassant(move)) {
                     SoundPlayer.playCaptureSound();
                     moveSuccessful = true;

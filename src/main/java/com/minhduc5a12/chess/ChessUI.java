@@ -1,14 +1,18 @@
 package com.minhduc5a12.chess;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.minhduc5a12.chess.constants.GameMode;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.ui.MoveHistoryPanel;
 import com.minhduc5a12.chess.ui.PlayerPanel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class ChessUI {
     private final ChessController chessController;
@@ -89,14 +93,10 @@ public class ChessUI {
 
     private void configureGame(ChessController controller, int mode, PieceColor playerColor) {
         switch (mode) {
-            case GameMode.PLAYER_VS_PLAYER:
-                break;
-            case GameMode.PLAYER_VS_AI:
-                controller.setPlayerVsAI(playerColor);
-                break;
-            case GameMode.AI_VS_AI:
-                controller.setAIVsAI();
-                break;
+            case GameMode.PLAYER_VS_PLAYER -> {
+            }
+            case GameMode.PLAYER_VS_AI -> controller.setPlayerVsAI(playerColor);
+            case GameMode.AI_VS_AI -> controller.setAIVsAI();
         }
     }
 }

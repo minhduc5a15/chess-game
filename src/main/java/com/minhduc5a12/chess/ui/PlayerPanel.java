@@ -18,10 +18,11 @@ public class PlayerPanel extends JPanel {
     private final TreeMap<ChessPiece, Integer> capturedPieces;
     private final JPanel capturedPiecesPanel;
     private final JLabel scoreLabel;
+    private boolean isActiveTurn;
 
     public PlayerPanel(String playerName, PieceColor pieceColor, String avatarPath) {
+        this.isActiveTurn = pieceColor.isWhite();
         capturedPieces = new TreeMap<>();
-
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setOpaque(true);
         setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
@@ -104,6 +105,16 @@ public class PlayerPanel extends JPanel {
         GradientPaint gradient = new GradientPaint(0, 0, new Color(89, 45, 13), getWidth(), getHeight(), new Color(138, 66, 17));
         g2d.setPaint(gradient);
         g2d.fillRect(0, 0, getWidth(), getHeight());
+        if (isActiveTurn) {
+            g2d.setColor(new Color(255, 255, 0, 100));
+            g2d.setStroke(new BasicStroke(5));
+            g2d.drawRect(2, 2, getWidth() - 4, getHeight() - 4);
+        }
         g2d.dispose();
+    }
+
+    public void setActiveTurn(boolean isActiveTurn) {
+        this.isActiveTurn = isActiveTurn;
+        repaint();
     }
 }
