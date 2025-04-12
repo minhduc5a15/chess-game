@@ -1,6 +1,7 @@
 package com.minhduc5a12.chess.pieces;
 
 import com.minhduc5a12.chess.constants.PieceColor;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.model.ChessPosition;
 
 import java.util.HashMap;

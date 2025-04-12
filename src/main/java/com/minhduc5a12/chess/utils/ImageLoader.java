@@ -1,14 +1,23 @@
 package com.minhduc5a12.chess.utils;
 
+import com.minhduc5a12.chess.constants.GameConstants;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ImageLoader {
     private static final Map<String, Image> imageCache = new HashMap<>();
+    private static final Logger log = LoggerFactory.getLogger(ImageLoader.class);
 
     public static Image getImage(String path, int width, int height) {
         return imageCache.computeIfAbsent(path, k -> {
@@ -18,10 +27,72 @@ public class ImageLoader {
                 Image img = ImageIO.read(imageUrl);
                 return img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
             } catch (IOException e) {
-                System.err.println("Failed to load image: " + path);
+                log.error("Cannot load image: {}", path, e);
                 return null;
             }
         });
+    }
+
+    public static Image getSvg(String svgPath, int width, int height) {
+        return getSvg(svgPath, width, height, null);
+    }
+
+    public static Image getSvg(String svgPath, int width, int height, Color color) {
+        try {
+            InputStream svgStream = ImageLoader.class.getClassLoader().getResourceAsStream(svgPath);
+            if (svgStream == null) {
+                log.error("Cannot find SVG: {}", svgPath);
+                throw new IOException("Cannot find SVG: " + svgPath);
+            }
+
+            class CustomImageTranscoder extends ImageTranscoder {
+                private BufferedImage image;
+
+                @Override
+                public BufferedImage createImage(int w, int h) {
+                    image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                    return image;
+                }
+
+                @Override
+                public void writeImage(BufferedImage img, TranscoderOutput output) {
+                }
+
+                public BufferedImage getImage() {
+                    return image;
+                }
+            }
+
+            CustomImageTranscoder transcoder = new CustomImageTranscoder();
+            transcoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, (float) width);
+            transcoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, (float) height);
+
+            TranscoderInput input = new TranscoderInput(svgStream);
+            transcoder.transcode(input, null);
+
+            BufferedImage renderedImage = transcoder.getImage();
+            if (renderedImage == null) {
+                throw new IllegalStateException("Failed to render SVG: " + svgPath);
+            }
+
+            if (color != null) {
+                BufferedImage coloredImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = coloredImage.createGraphics();
+
+                g2d.drawImage(renderedImage, 0, 0, null);
+                g2d.setComposite(AlphaComposite.SrcAtop);
+                g2d.setColor(color);
+                g2d.fillRect(0, 0, width, height);
+                g2d.dispose();
+
+                return coloredImage;
+            }
+
+            return renderedImage;
+        } catch (Exception e) {
+            log.error("Cannot load SVG: {}", svgPath, e);
+            return null;
+        }
     }
 
     public static void preloadImages() {
@@ -29,7 +100,7 @@ public class ImageLoader {
         for (String name : chessPieceName) {
             getImage("images/pieces/" + name, 95, 95);
         }
-        getImage("images/chessboard.png", 800, 800);
+        getImage("images/chessboard.png", GameConstants.Board.BOARD_WIDTH, GameConstants.Board.BOARD_HEIGHT);
     }
 
     public static Image rotateImage(Image original, double degrees) {

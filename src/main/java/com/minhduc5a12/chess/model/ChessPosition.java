@@ -1,8 +1,10 @@
 package com.minhduc5a12.chess.model;
 
+import com.minhduc5a12.chess.constants.GameConstants;
+
 public record ChessPosition(int col, int row) {
     public ChessPosition {
-        if (col < 0 || col > 7 || row < 0 || row > 7) {
+        if (col < 0 || col > (GameConstants.Board.BOARD_SIZE - 1) || row < 0 || row > (GameConstants.Board.BOARD_SIZE - 1)) {
             throw new IllegalArgumentException("Invalid position: (" + col + ", " + row + ")");
         }
     }
@@ -28,7 +30,7 @@ public record ChessPosition(int col, int row) {
     }
 
     public int[] toMatrixCoords() {
-        return new int[]{7 - row, col};
+        return new int[]{GameConstants.Board.BOARD_SIZE - row - 1, col};
     }
 
     public int matrixCol() {
@@ -36,6 +38,6 @@ public record ChessPosition(int col, int row) {
     }
 
     public int matrixRow() {
-        return 7 - row;
+        return GameConstants.Board.BOARD_SIZE - row - 1;
     }
 }

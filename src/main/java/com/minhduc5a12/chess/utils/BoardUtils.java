@@ -3,17 +3,22 @@ package com.minhduc5a12.chess.utils;
 import com.minhduc5a12.chess.BoardManager;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.model.ChessPosition;
-import com.minhduc5a12.chess.pieces.*;
+import com.minhduc5a12.chess.pieces.Bishop;
+import com.minhduc5a12.chess.pieces.ChessPieceMap;
+import com.minhduc5a12.chess.pieces.King;
+import com.minhduc5a12.chess.pieces.Knight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 
+import static com.minhduc5a12.chess.constants.GameConstants.Board.BOARD_SIZE;
+
 public class BoardUtils {
     private static final Logger logger = LoggerFactory.getLogger(BoardUtils.class);
-    public static final int BOARD_SIZE = 8;
 
     public static boolean isWithinBoard(int x, int y) {
         return x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE;
@@ -162,6 +167,8 @@ public class BoardUtils {
                     else blackBishopPos = entry.getKey();
                 }
             }
+            assert whiteBishopPos != null;
+            assert blackBishopPos != null;
             boolean sameColor = (whiteBishopPos.col() + whiteBishopPos.row()) % 2 == (blackBishopPos.col() + blackBishopPos.row()) % 2;
             if (sameColor) {
                 logger.info("Dead Position: King + Bishop vs. King + Bishop (same color)");

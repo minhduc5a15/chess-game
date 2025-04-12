@@ -1,63 +1,48 @@
 package com.minhduc5a12.chess;
 
-import java.util.Comparator;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-
 import com.minhduc5a12.chess.constants.GameMode;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.model.ChessPosition;
-import com.minhduc5a12.chess.pieces.Bishop;
-import com.minhduc5a12.chess.pieces.ChessPiece;
-import com.minhduc5a12.chess.pieces.ChessPieceMap;
-import com.minhduc5a12.chess.pieces.King;
-import com.minhduc5a12.chess.pieces.Knight;
-import com.minhduc5a12.chess.pieces.Pawn;
-import com.minhduc5a12.chess.pieces.Queen;
-import com.minhduc5a12.chess.pieces.Rook;
+import com.minhduc5a12.chess.pieces.*;
 import com.minhduc5a12.chess.players.StockfishPlayer;
 import com.minhduc5a12.chess.ui.GameOverDialog;
-import com.minhduc5a12.chess.ui.PlayerPanel;
 import com.minhduc5a12.chess.ui.PromotionDialog;
 import com.minhduc5a12.chess.utils.BoardUtils;
 import com.minhduc5a12.chess.utils.SoundPlayer;
 
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class ChessController extends BoardManager implements MoveExecutor {
     private static final int FIFTY_MOVE_RULE_LIMIT = 50;
+
     private boolean gameEnded;
     private JFrame frame;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private StockfishPlayer stockfishPlayer;
     private int gameMode = GameMode.PLAYER_VS_PLAYER;
     private PieceColor humanPlayerColor;
-    private final TreeMap<ChessPiece, Integer> whiteCapturedPieces; // Multiset cho các quân trắng bị ăn
-    private final TreeMap<ChessPiece, Integer> blackCapturedPieces; // Multiset cho các quân đen bị ăn
-    private PlayerPanel whitePlayerPanel; // Tham chiếu đến PlayerPanel của bên trắng
-    private PlayerPanel blackPlayerPanel; // Tham chiếu đến PlayerPanel của bên đen
+
+    private final List<PlayerPanelListener> listeners = new ArrayList<>();
+
+
+    public void addPlayerPanelListener(PlayerPanelListener listener) {
+        listeners.add(listener);
+    }
 
     public ChessController() {
         super();
         this.gameEnded = false;
-        // Khởi tạo TreeMap với Comparator dựa trên pieceValue
-        Comparator<ChessPiece> pieceComparator = Comparator.comparingInt(ChessPiece::getPieceValue);
-        this.whiteCapturedPieces = new TreeMap<>(pieceComparator);
-        this.blackCapturedPieces = new TreeMap<>(pieceComparator);
         setupInitialPosition();
     }
 
     public void setFrame(JFrame frame) {
         this.frame = frame;
-    }
-
-    // Phương thức để thiết lập các PlayerPanel
-    public void setPlayerPanels(PlayerPanel whitePanel, PlayerPanel blackPanel) {
-        this.whitePlayerPanel = whitePanel;
-        this.blackPlayerPanel = blackPanel;
     }
 
     public void setPlayerVsAI(PieceColor humanColor) {
@@ -75,46 +60,29 @@ public class ChessController extends BoardManager implements MoveExecutor {
         stockfishPlayer.makeMove();
     }
 
-    private void updatePlayerScores() {
+    private void notifyScoreUpdated() {
         int materialAdvantage = getChessPieceMap().getMaterialAdvantage();
-        if (whitePlayerPanel != null && blackPlayerPanel != null) {
-            SwingUtilities.invokeLater(() -> {
-                whitePlayerPanel.updateScore(materialAdvantage);
-                blackPlayerPanel.updateScore(-materialAdvantage); // Điểm số ngược lại cho đen
-            });
+        for (PlayerPanelListener listener : listeners) {
+            listener.onScoreUpdated(PieceColor.WHITE, materialAdvantage);
+            listener.onScoreUpdated(PieceColor.BLACK, -materialAdvantage);
         }
     }
 
-    private void activateTurn() {
-        if (whitePlayerPanel != null && blackPlayerPanel != null) {
-            if (currentPlayerColor.isWhite()) {
-                whitePlayerPanel.setActiveTurn(true);
-                blackPlayerPanel.setActiveTurn(false);
-            } else {
-                whitePlayerPanel.setActiveTurn(false);
-                blackPlayerPanel.setActiveTurn(true);
-            }
+    private void notifyTurnChanged() {
+        for (PlayerPanelListener listener : listeners) {
+            listener.onTurnChanged(currentPlayerColor);
+        }
+    }
+
+    private void notifyPieceCaptured(PieceColor capturerColor, ChessPiece capturedPiece) {
+        for (PlayerPanelListener listener : listeners) {
+            listener.onPieceCaptured(capturerColor, capturedPiece);
         }
     }
 
     @Override
     public boolean executeMove(ChessMove move) {
         ChessPiece piece = getPiece(move.start());
-        if (piece == null || gameEnded) {
-            SoundPlayer.playMoveIllegal();
-            logger.debug("No piece found at start position or game ended: {}", move.start().toChessNotation());
-            return false;
-        }
-        if (!BoardUtils.isMoveValidUnderCheck(move, getChessPieceMap())) {
-            if (move.start().equals(move.end())) {
-                setCurrentLeftClickedTile(null);
-                return false;
-            }
-            SoundPlayer.playMoveIllegal();
-            setCurrentLeftClickedTile(null);
-            logger.debug("Invalid move under check: {}", move);
-            return false;
-        }
 
         boolean isCapture = getPiece(move.end()) != null;
         boolean isPawnMove = piece instanceof Pawn;
@@ -122,20 +90,9 @@ public class ChessController extends BoardManager implements MoveExecutor {
         ChessTile startTile = getTile(move.start());
         ChessTile endTile = getTile(move.end());
 
-        // Nếu có quân bị ăn, thêm vào danh sách tương ứng và cập nhật PlayerPanel
         if (isCapture) {
             ChessPiece capturedPiece = getPiece(move.end());
-            if (capturedPiece.getColor().isWhite()) {
-                whiteCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
-                if (blackPlayerPanel != null) {
-                    SwingUtilities.invokeLater(() -> blackPlayerPanel.addCapturedPiece(capturedPiece));
-                }
-            } else {
-                blackCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
-                if (whitePlayerPanel != null) {
-                    SwingUtilities.invokeLater(() -> whitePlayerPanel.addCapturedPiece(capturedPiece));
-                }
-            }
+            notifyPieceCaptured(piece.getColor(), capturedPiece);
         }
 
         if (piece instanceof Pawn && (move.end().row() == 7 || move.end().row() == 0)) {
@@ -169,8 +126,8 @@ public class ChessController extends BoardManager implements MoveExecutor {
         }
 
         switchTurn();
-        activateTurn();
-        updatePlayerScores();
+        notifyTurnChanged();
+        notifyScoreUpdated();
 
         boolean isCheck = BoardUtils.isKingInCheck(currentPlayerColor, getChessPieceMap());
 
@@ -203,8 +160,7 @@ public class ChessController extends BoardManager implements MoveExecutor {
             return false;
         }
 
-        boolean canCastle = isKingside ? kingPiece.canCastleKingside(kingPos, getChessPieceMap())
-                : kingPiece.canCastleQueenside(kingPos, getChessPieceMap());
+        boolean canCastle = isKingside ? kingPiece.canCastleKingside(kingPos, getChessPieceMap()) : kingPiece.canCastleQueenside(kingPos, getChessPieceMap());
         if (!canCastle) {
             logger.debug("Cannot castle {} for {}", isKingside ? "kingside" : "queenside", color);
             return false;
@@ -238,7 +194,8 @@ public class ChessController extends BoardManager implements MoveExecutor {
         logger.debug("Castling performed: {} for {}", isKingside ? "Kingside" : "Queenside", color);
 
         switchTurn();
-        updatePlayerScores();
+        notifyScoreUpdated();
+        notifyTurnChanged();
         halfmoveClock++;
         executor.submit(this::checkGameEndConditions);
 
@@ -260,9 +217,7 @@ public class ChessController extends BoardManager implements MoveExecutor {
         }
 
         ChessPiece lastMovedPiece = getPiece(lastMove.end());
-        if (!(lastMovedPiece instanceof Pawn) || Math.abs(lastMove.start().row() - lastMove.end().row()) != 2
-                || lastMove.end().row() != move.start().row()
-                || Math.abs(lastMove.end().col() - move.start().col()) != 1) {
+        if (!(lastMovedPiece instanceof Pawn) || Math.abs(lastMove.start().row() - lastMove.end().row()) != 2 || lastMove.end().row() != move.start().row() || Math.abs(lastMove.end().col() - move.start().col()) != 1) {
             logger.debug("Last move does not qualify for en passant");
             return false;
         }
@@ -285,20 +240,8 @@ public class ChessController extends BoardManager implements MoveExecutor {
         ChessTile endTile = getTile(move.end());
         ChessTile capturedTile = getTile(lastMove.end());
 
-        // Thêm quân bị ăn (qua en passant) vào danh sách tương ứng và cập nhật
-        // PlayerPanel
         ChessPiece capturedPiece = getPiece(lastMove.end());
-        if (capturedPiece.getColor().isWhite()) {
-            whiteCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
-            if (blackPlayerPanel != null) {
-                SwingUtilities.invokeLater(() -> blackPlayerPanel.addCapturedPiece(capturedPiece));
-            }
-        } else {
-            blackCapturedPieces.merge(capturedPiece, 1, Integer::sum); // Tăng số lượng trong multiset
-            if (whitePlayerPanel != null) {
-                SwingUtilities.invokeLater(() -> whitePlayerPanel.addCapturedPiece(capturedPiece));
-            }
-        }
+        notifyPieceCaptured(piece.getColor(), capturedPiece);
 
         removePiece(lastMove.end());
         removePiece(move.start());
@@ -308,12 +251,12 @@ public class ChessController extends BoardManager implements MoveExecutor {
         updateBoardStateHistory();
 
         repaintTiles(startTile, endTile, capturedTile);
-        logger.info("En passant performed: {} to {}, captured at {}", move.start().toChessNotation(),
-                move.end().toChessNotation(), lastMove.end().toChessNotation());
+        logger.info("En passant performed: {} to {}, captured at {}", move.start().toChessNotation(), move.end().toChessNotation(), lastMove.end().toChessNotation());
 
         halfmoveClock = 0;
         switchTurn();
-        updatePlayerScores();
+        notifyScoreUpdated();
+        notifyTurnChanged();
         executor.submit(this::checkGameEndConditions);
 
         return true;
@@ -344,11 +287,14 @@ public class ChessController extends BoardManager implements MoveExecutor {
     public boolean movePiece(ChessMove move) {
         ChessPiece piece = getPiece(move.start());
         boolean moveSuccessful = false;
+        if (piece == null || gameEnded || !getCurrentValidMoves().contains(move) || !BoardUtils.isMoveValidUnderCheck(move, getChessPieceMap())) {
+            SoundPlayer.playMoveIllegal();
+            logger.debug("No piece found at start position or game ended: {}", move.start().toChessNotation());
+            setCurrentLeftClickedTile(null);
+            return false;
+        }
 
         switch (piece) {
-            case null -> {
-                return false;
-            }
             case King king when Math.abs(move.end().col() - move.start().col()) == 2 -> {
                 boolean isKingside = move.end().col() > move.start().col();
                 if (performCastling(isKingside, piece.getColor())) {
@@ -358,8 +304,7 @@ public class ChessController extends BoardManager implements MoveExecutor {
                     SoundPlayer.playMoveIllegal();
                 }
             }
-            case Pawn pawn when getPiece(move.end()) == null && move.start().col() != move.end().col()
-                    && Math.abs(move.start().row() - move.end().row()) == 1 -> {
+            case Pawn pawn when getPiece(move.end()) == null && move.start().col() != move.end().col() && Math.abs(move.start().row() - move.end().row()) == 1 -> {
                 if (performEnPassant(move)) {
                     SoundPlayer.playCaptureSound();
                     moveSuccessful = true;
@@ -438,5 +383,8 @@ public class ChessController extends BoardManager implements MoveExecutor {
             return humanPlayerColor;
         }
         return null;
+    }
+
+    public void resignGame() {
     }
 }

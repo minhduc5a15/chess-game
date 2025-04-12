@@ -1,10 +1,11 @@
 package com.minhduc5a12.chess.utils;
 
 import com.minhduc5a12.chess.BoardManager;
+import com.minhduc5a12.chess.constants.GameConstants;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
 import com.minhduc5a12.chess.model.ChessPosition;
-import com.minhduc5a12.chess.pieces.ChessPiece;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.pieces.ChessPieceMap;
 import com.minhduc5a12.chess.pieces.Pawn;
 import com.minhduc5a12.chess.pieces.Rook;
@@ -15,9 +16,9 @@ public class ChessNotationUtils {
         StringBuilder fen = new StringBuilder();
 
         // 1. Vị trí quân cờ
-        for (int row = 7; row >= 0; row--) {
+        for (int row = GameConstants.Board.BOARD_SIZE - 1; row >= 0; row--) {
             int emptyCount = 0;
-            for (int col = 0; col < 8; col++) {
+            for (int col = 0; col <= GameConstants.Board.BOARD_SIZE - 1; col++) {
                 ChessPosition position = new ChessPosition(col, row);
                 ChessPiece piece = pieceMap.getPiece(position);
 
@@ -49,10 +50,10 @@ public class ChessNotationUtils {
         boolean whiteKingMoved = pieceMap.getPiece(pieceMap.getKingPosition(PieceColor.WHITE)) != null && pieceMap.getPiece(pieceMap.getKingPosition(PieceColor.WHITE)).hasMoved();
         boolean blackKingMoved = pieceMap.getPiece(pieceMap.getKingPosition(PieceColor.BLACK)) != null && pieceMap.getPiece(pieceMap.getKingPosition(PieceColor.BLACK)).hasMoved();
 
-        ChessPiece whiteRookKingSide = pieceMap.getPiece(new ChessPosition(7, 0));
+        ChessPiece whiteRookKingSide = pieceMap.getPiece(new ChessPosition(GameConstants.Board.BOARD_SIZE - 1, 0));
         ChessPiece whiteRookQueenSide = pieceMap.getPiece(new ChessPosition(0, 0));
-        ChessPiece blackRookKingSide = pieceMap.getPiece(new ChessPosition(7, 7));
-        ChessPiece blackRookQueenSide = pieceMap.getPiece(new ChessPosition(0, 7));
+        ChessPiece blackRookKingSide = pieceMap.getPiece(new ChessPosition(GameConstants.Board.BOARD_SIZE - 1, GameConstants.Board.BOARD_SIZE - 1));
+        ChessPiece blackRookQueenSide = pieceMap.getPiece(new ChessPosition(0, GameConstants.Board.BOARD_SIZE - 1));
 
         if (!whiteKingMoved) {
             if (whiteRookKingSide instanceof Rook && !whiteRookKingSide.hasMoved()) {

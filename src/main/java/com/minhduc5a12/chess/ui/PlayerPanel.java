@@ -1,14 +1,16 @@
 package com.minhduc5a12.chess.ui;
 
+import com.minhduc5a12.chess.ChessController;
+import com.minhduc5a12.chess.PlayerPanelListener;
 import com.minhduc5a12.chess.constants.PieceColor;
-import com.minhduc5a12.chess.pieces.ChessPiece;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.utils.ImageLoader;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.TreeMap;
 
-public class PlayerPanel extends JPanel {
+public class PlayerPanel extends JPanel implements PlayerPanelListener {
     private final static int FRAME_WIDTH = 250;
     private final static int FRAME_HEIGHT = 800;
     private final static int AVATAR_WIDTH = 120;
@@ -19,10 +21,12 @@ public class PlayerPanel extends JPanel {
     private final JPanel capturedPiecesPanel;
     private final JLabel scoreLabel;
     private boolean isActiveTurn;
+    private final PieceColor pieceColor;
 
-    public PlayerPanel(String playerName, PieceColor pieceColor, String avatarPath) {
+    public PlayerPanel(String playerName, PieceColor pieceColor, String avatarPath, ChessController chessController) {
+        this.pieceColor = pieceColor;
         this.isActiveTurn = pieceColor.isWhite();
-        capturedPieces = new TreeMap<>();
+        this.capturedPieces = new TreeMap<>();
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setOpaque(true);
         setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
@@ -59,6 +63,28 @@ public class PlayerPanel extends JPanel {
         add(Box.createVerticalGlue());
 
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Đăng ký listener với ChessController
+        chessController.addPlayerPanelListener(this);
+    }
+
+    @Override
+    public void onScoreUpdated(PieceColor color, int score) {
+        if (color == this.pieceColor) {
+            SwingUtilities.invokeLater(() -> updateScore(score));
+        }
+    }
+
+    @Override
+    public void onPieceCaptured(PieceColor capturerColor, ChessPiece capturedPiece) {
+        if (capturerColor == this.pieceColor) {
+            SwingUtilities.invokeLater(() -> addCapturedPiece(capturedPiece));
+        }
+    }
+
+    @Override
+    public void onTurnChanged(PieceColor currentPlayerColor) {
+        SwingUtilities.invokeLater(() -> setActiveTurn(currentPlayerColor == this.pieceColor));
     }
 
     public void addCapturedPiece(ChessPiece piece) {

@@ -1,9 +1,10 @@
 package com.minhduc5a12.chess;
 
+import com.minhduc5a12.chess.constants.GameConstants;
 import com.minhduc5a12.chess.constants.GameMode;
 import com.minhduc5a12.chess.model.ChessMove;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.model.ChessPosition;
-import com.minhduc5a12.chess.pieces.ChessPiece;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +16,6 @@ import java.awt.event.MouseMotionAdapter;
 
 public class ChessTile extends JPanel {
     private static final Logger logger = LoggerFactory.getLogger(ChessTile.class);
-    private static final int DEFAULT_TILE_SIZE = 100;
     private static final int CIRCLE_SIZE = 30;
 
     private final ChessPosition position;
@@ -40,7 +40,7 @@ public class ChessTile extends JPanel {
     }
 
     public ChessTile(ChessPosition position, ChessController chessController) {
-        this(position, DEFAULT_TILE_SIZE, chessController);
+        this(position, GameConstants.Board.SQUARE_SIZE, chessController);
     }
 
     @Override
@@ -55,10 +55,10 @@ public class ChessTile extends JPanel {
 
         if (isLastMove) {
             g2d.setColor(new Color(0, 0, 0, 50));
-            g2d.fillRect(0, 0, DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+            g2d.fillRect(0, 0, GameConstants.Board.SQUARE_SIZE, GameConstants.Board.SQUARE_SIZE);
             g2d.setColor(chessController.getPiece(chessController.getLastMove().end()).getColor().isWhite() ? new Color(0, 211, 255) : new Color(255, 24, 62));
             g2d.setStroke(new BasicStroke(4));
-            g2d.drawRect(0, 0, DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+            g2d.drawRect(0, 0, GameConstants.Board.SQUARE_SIZE, GameConstants.Board.SQUARE_SIZE);
         }
 
         if (piece != null) {
@@ -68,14 +68,14 @@ public class ChessTile extends JPanel {
             if (piece != null) {
                 g2d.setColor(new Color(222, 47, 31, 150));
                 g2d.setStroke(new BasicStroke(4));
-                int circleX = (DEFAULT_TILE_SIZE - 90) / 2;
-                int circleY = (DEFAULT_TILE_SIZE - 90) / 2;
+                int circleX = (GameConstants.Board.SQUARE_SIZE - 90) / 2;
+                int circleY = (GameConstants.Board.SQUARE_SIZE - 90) / 2;
                 g2d.drawOval(circleX, circleY, 90, 90);
                 g2d.setStroke(new BasicStroke(1));
             } else {
                 g2d.setColor(new Color(255, 255, 255, 100));
-                int circleX = (DEFAULT_TILE_SIZE - CIRCLE_SIZE) / 2;
-                int circleY = (DEFAULT_TILE_SIZE - CIRCLE_SIZE) / 2;
+                int circleX = (GameConstants.Board.SQUARE_SIZE - CIRCLE_SIZE) / 2;
+                int circleY = (GameConstants.Board.SQUARE_SIZE - CIRCLE_SIZE) / 2;
                 g2d.fillOval(circleX, circleY, CIRCLE_SIZE, CIRCLE_SIZE);
             }
         }
@@ -149,6 +149,16 @@ public class ChessTile extends JPanel {
                         logger.debug("Selected piece at: {}", position.toChessNotation());
                     }
                 } else {
+                    if (piece != null && piece.getColor() == chessController.getCurrentPlayerColor()) {
+                        if (selectedTile == ChessTile.this) {
+                            chessController.setCurrentLeftClickedTile(null);
+                            logger.debug("Deselected piece at: {}", position.toChessNotation());
+                            return;
+                        }
+                        chessController.setCurrentLeftClickedTile(ChessTile.this);
+                        logger.debug("Selected piece at: {}", position.toChessNotation());
+                        return;
+                    }
                     ChessMove move = new ChessMove(selectedTile.getPosition(), position);
                     if (chessController.movePiece(move)) {
                         logger.debug("Moved piece from {} to {}", move.start().toChessNotation(), move.end().toChessNotation());

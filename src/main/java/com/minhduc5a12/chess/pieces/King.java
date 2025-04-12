@@ -1,7 +1,9 @@
 package com.minhduc5a12.chess.pieces;
 
 import com.minhduc5a12.chess.constants.PieceColor;
+import com.minhduc5a12.chess.exception.InvalidPositionException;
 import com.minhduc5a12.chess.model.ChessMove;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.utils.BoardUtils;
 
@@ -24,10 +26,10 @@ public class King extends ChessPiece {
         int startCol = start.col();
         PieceColor color = getColor();
 
-        int[][] offsets = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
-        for (int[] offset : offsets) {
-            int newCol = startCol + offset[0];
-            int newRow = startRow + offset[1];
+        int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+        for (int[] dir : directions) {
+            int newCol = startCol + dir[0];
+            int newRow = startRow + dir[1];
             if (BoardUtils.isWithinBoard(newCol, newRow)) {
                 ChessPosition pos = new ChessPosition(newCol, newRow);
                 if (!pieceMap.hasPiece(pos) || (pieceMap.hasPiece(pos) && pieceMap.getPiece(pos).getColor() != color)) {

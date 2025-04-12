@@ -1,6 +1,7 @@
 package com.minhduc5a12.chess.players;
 
 import com.minhduc5a12.chess.ChessController;
+import com.minhduc5a12.chess.ChessTile;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.engine.Stockfish;
 import com.minhduc5a12.chess.model.ChessMove;
@@ -42,6 +43,15 @@ public class StockfishPlayer {
                     ChessPosition end = ChessPosition.toChessPosition(endPos);
                     ChessMove move = new ChessMove(start, end);
 
+                    ChessTile startTile = chessController.getTile(start);
+                    if (startTile != null && startTile.getPiece() != null) {
+                        chessController.setCurrentLeftClickedTile(startTile);
+                        logger.debug("Generated valid moves for AI piece at {}", startPos);
+                    } else {
+                        logger.warn("No piece found at start position: {}", startPos);
+                        return;
+                    }
+
                     if (bestMoveStr.length() > 4) {
                         char promotion = bestMoveStr.charAt(4);
                         logger.info("Promotion detected: {} to {} with promotion to {}", startPos, endPos, promotion);
@@ -54,6 +64,8 @@ public class StockfishPlayer {
                     boolean success = chessController.movePiece(move);
                     if (!success) {
                         logger.warn("Failed to execute Stockfish move: {} to {}", startPos, endPos);
+                    } else {
+                        chessController.setCurrentLeftClickedTile(null);
                     }
                 } else {
                     logger.warn("No best move returned by Stockfish");
@@ -69,10 +81,6 @@ public class StockfishPlayer {
             return start.toChessNotation().equals("e1") || start.toChessNotation().equals("e8");
         }
         return false;
-    }
-
-    public PieceColor getStockfishColor() {
-        return stockfishColor;
     }
 
     public void shutdown() {

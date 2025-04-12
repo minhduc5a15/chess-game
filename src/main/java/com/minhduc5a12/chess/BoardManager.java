@@ -1,7 +1,9 @@
 package com.minhduc5a12.chess;
 
+import com.minhduc5a12.chess.constants.GameConstants;
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.model.ChessPosition;
 import com.minhduc5a12.chess.pieces.*;
 import com.minhduc5a12.chess.utils.BoardUtils;
@@ -18,7 +20,7 @@ public class BoardManager {
     protected static final Logger logger = LoggerFactory.getLogger(BoardManager.class);
 
     // Fields
-    private final ChessTile[][] tiles = new ChessTile[8][8];
+    private final ChessTile[][] tiles = new ChessTile[GameConstants.Board.BOARD_SIZE][GameConstants.Board.BOARD_SIZE];
     private final ChessPieceMap chessPieceMap;
     private final Map<String, Integer> boardStateHistory;
     private final ChessNotationUtils notationUtils;
@@ -42,9 +44,9 @@ public class BoardManager {
 
     // Initialize tiles array
     private void initializeTiles() {
-        for (int row = 0; row < 8; row++) {
-            for (int col = 0; col < 8; col++) {
-                tiles[row][col] = new ChessTile(new ChessPosition(col, 7 - row), (ChessController) this);
+        for (int row = 0; row < GameConstants.Board.BOARD_SIZE; row++) {
+            for (int col = 0; col < GameConstants.Board.BOARD_SIZE; col++) {
+                tiles[row][col] = new ChessTile(new ChessPosition(col, GameConstants.Board.BOARD_SIZE - row - 1), (ChessController) this);
             }
         }
     }
@@ -96,6 +98,10 @@ public class BoardManager {
 
     public ChessNotationUtils getNotationUtils() {
         return notationUtils;
+    }
+
+    public List<ChessMove> getCurrentValidMoves() {
+        return currentValidMoves;
     }
 
     // Setters

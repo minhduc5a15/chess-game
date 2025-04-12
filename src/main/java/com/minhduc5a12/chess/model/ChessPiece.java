@@ -1,8 +1,7 @@
-package com.minhduc5a12.chess.pieces;
+package com.minhduc5a12.chess.model;
 
 import com.minhduc5a12.chess.constants.PieceColor;
-import com.minhduc5a12.chess.model.ChessMove;
-import com.minhduc5a12.chess.model.ChessPosition;
+import com.minhduc5a12.chess.pieces.ChessPieceMap;
 import com.minhduc5a12.chess.utils.BoardUtils;
 import com.minhduc5a12.chess.utils.ImageLoader;
 import org.slf4j.Logger;

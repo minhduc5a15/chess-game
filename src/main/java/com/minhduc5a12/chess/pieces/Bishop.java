@@ -2,7 +2,9 @@ package com.minhduc5a12.chess.pieces;
 
 import com.minhduc5a12.chess.constants.PieceColor;
 import com.minhduc5a12.chess.model.ChessMove;
+import com.minhduc5a12.chess.model.ChessPiece;
 import com.minhduc5a12.chess.model.ChessPosition;
+import com.minhduc5a12.chess.utils.BoardUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,7 @@ public class Bishop extends ChessPiece {
             int newCol = startCol + dCol;
             int newRow = startRow + dRow;
 
-            while (newCol >= 0 && newCol <= 7 && newRow >= 0 && newRow <= 7) {
+            while (BoardUtils.isWithinBoard(newCol, newRow)) {
                 ChessPosition pos = new ChessPosition(newCol, newRow);
                 if (!pieceMap.hasPiece(pos)) {
                     moves.add(new ChessMove(start, pos));
