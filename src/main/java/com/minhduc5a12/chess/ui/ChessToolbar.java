@@ -1,5 +1,6 @@
 package com.minhduc5a12.chess.ui;
 
+import com.minhduc5a12.chess.ChessBoard;
 import com.minhduc5a12.chess.ChessController;
 import com.minhduc5a12.chess.utils.ImageLoader;
 
@@ -9,11 +10,13 @@ import java.awt.event.ActionListener;
 
 public class ChessToolbar extends JPanel {
     private final ChessController chessController;
+    private final ChessBoard chessBoard;
     private static final int ICON_SIZE = 24;
     private static final int TOOLBAR_HEIGHT = 50;
 
-    public ChessToolbar(ChessController controller) {
+    public ChessToolbar(ChessController controller, ChessBoard chessBoard) {
         this.chessController = controller;
+        this.chessBoard = chessBoard;
         setBackground(new Color(40, 40, 40));
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
@@ -24,25 +27,24 @@ public class ChessToolbar extends JPanel {
     }
 
     private void initializeButtons() {
-        add(createButton("Undo", "images/resign.png", e -> {
-        }));
-
         add(createButton("Flip Board", "images/flip-board.png", e -> {
+            chessBoard.flipBoard();
         }));
 
         add(createButton("Resign", "images/resign.png", e -> {
-            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to resign?", "Resign Game", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
+            ResignDialog dialog = new ResignDialog((Frame) SwingUtilities.getWindowAncestor(this), "Are you sure you want to resign?");
+            dialog.setVisible(true);
+            if (dialog.isConfirmed()) {
                 chessController.resignGame();
             }
         }));
 
-        add(createButton("Exit", "images/resign.png", e -> {
-            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to exit?", "Exit Game", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
-                chessController.shutdown();
-                System.exit(0);
-            }
+        add(createButton("Move Back", "images/back.png", e -> {
+//            chessController.undoMove();
+        }));
+
+        add(createButton("Move Forward", "images/forward.png", e -> {
+//            chessController.redoMove();
         }));
     }
 

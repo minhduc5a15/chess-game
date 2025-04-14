@@ -135,6 +135,14 @@ public class BoardManager {
         }
     }
 
+    public void setHalfmoveClock(int halfmoveClock) {
+        this.halfmoveClock = halfmoveClock;
+    }
+
+    public void setFullmoveNumber(int fullmoveNumber) {
+        this.fullmoveNumber = fullmoveNumber;
+    }
+
     // Core methods
     public void setupInitialPosition() {
         clear();
@@ -242,4 +250,5 @@ public class BoardManager {
         if (startTile != null) startTile.setLastMove(true);
         if (endTile != null) endTile.setLastMove(true);
     }
+
 }

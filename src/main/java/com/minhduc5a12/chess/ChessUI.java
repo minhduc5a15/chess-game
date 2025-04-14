@@ -20,6 +20,7 @@ public class ChessUI {
         this.chessController = new ChessController();
         configureGame(this.chessController, gameMode, selectedColor);
         this.frame = new JFrame("Chess Game");
+        chessController.setFrame(frame); // Thêm dòng này
         setupUI();
     }
 
@@ -66,13 +67,12 @@ public class ChessUI {
         MoveHistoryPanel moveHistoryPanel = new MoveHistoryPanel();
         mainPanel.add(moveHistoryPanel, BorderLayout.NORTH);
 
-        ChessToolbar toolbar = new ChessToolbar(chessController);
+        ChessToolbar toolbar = new ChessToolbar(chessController, chessBoard);
         mainPanel.add(toolbar, BorderLayout.SOUTH);
 
         frame.add(mainPanel);
         frame.pack();
         frame.setLocationRelativeTo(null);
-
 
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override

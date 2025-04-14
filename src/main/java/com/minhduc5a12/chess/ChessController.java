@@ -30,7 +30,6 @@ public class ChessController extends BoardManager implements MoveExecutor {
 
     private final List<PlayerPanelListener> listeners = new ArrayList<>();
 
-
     public void addPlayerPanelListener(PlayerPanelListener listener) {
         listeners.add(listener);
     }
@@ -386,5 +385,19 @@ public class ChessController extends BoardManager implements MoveExecutor {
     }
 
     public void resignGame() {
+        if (!gameEnded) {
+            gameEnded = true;
+            String winner = currentPlayerColor.isWhite() ? "Đen" : "Trắng";
+            String message = "Người chơi " + (currentPlayerColor.isWhite() ? "Trắng" : "Đen") + " đầu hàng! " + winner + " thắng!";
+            SwingUtilities.invokeLater(() -> {
+                if (frame != null) {
+                    GameOverDialog dialog = new GameOverDialog(frame, message);
+                    dialog.setVisible(true);
+                } else {
+                    logger.error("Cannot show GameOverDialog: parent frame is null");
+                }
+            });
+            logger.info("Game ended due to resignation by {}", currentPlayerColor);
+        }
     }
 }

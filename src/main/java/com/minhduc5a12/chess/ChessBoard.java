@@ -1,13 +1,18 @@
 package com.minhduc5a12.chess;
 
-import com.minhduc5a12.chess.constants.GameConstants;
-import com.minhduc5a12.chess.constants.GameMode;
-import com.minhduc5a12.chess.utils.ImageLoader;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Image;
+
+import javax.swing.JPanel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
-import java.awt.*;
+import com.minhduc5a12.chess.constants.GameConstants;
+import com.minhduc5a12.chess.constants.GameMode;
+import com.minhduc5a12.chess.utils.ImageLoader;
 
 public class ChessBoard extends JPanel {
     private static final Logger logger = LoggerFactory.getLogger(ChessBoard.class);
@@ -54,4 +59,4 @@ public class ChessBoard extends JPanel {
         initializeBoard();
         logger.info("Board flipped: {}", isFlipped);
     }
-}
+} 

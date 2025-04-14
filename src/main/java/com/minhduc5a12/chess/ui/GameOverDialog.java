@@ -101,16 +101,33 @@ public class GameOverDialog extends JDialog {
     }
 
     private void onRestart(ActionEvent e) {
+        logger.debug("onRestart called");
         dispose();
-        parentFrame.dispose();
-        logger.info("Restart game");
-        ChessLauncher.launch();
+        if (parentFrame != null) {
+            logger.debug("Disposing parentFrame");
+            parentFrame.dispose();
+        } else {
+            logger.warn("parentFrame is null, skipping dispose");
+        }
+        logger.debug("Calling ChessLauncher.launch()");
+        try {
+            ChessLauncher.launch();
+            logger.info("Game restarted successfully");
+        } catch (Exception ex) {
+            logger.error("Failed to restart game", ex);
+        }
     }
 
     private void onExit(ActionEvent e) {
+        logger.debug("onExit called");
         dispose();
-        parentFrame.dispose();
-        logger.info("Exit game");
+        if (parentFrame != null) {
+            logger.debug("Disposing parentFrame");
+            parentFrame.dispose();
+        } else {
+            logger.warn("parentFrame is null, skipping dispose");
+        }
+        logger.info("Exiting game");
         System.exit(0);
     }
 }
